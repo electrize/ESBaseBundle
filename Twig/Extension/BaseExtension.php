@@ -47,13 +47,13 @@ class BaseExtension extends \Twig_Extension
 	public function getFilters()
 	{
 		return array(
-			'dump'          => new \Twig_Filter_Function(array('ES\Bundle\BaseBundle\Util\Debug', 'dump')),
-			'ucfirst'       => new \Twig_Filter_Function('ucfirst'),
-			'floor'         => new \Twig_Filter_Function('floor'),
-			'ceil'          => new \Twig_Filter_Function('ceil'),
-			'urlize'        => new \Twig_Filter_Function(array('ES\Bundle\BaseBundle\Util\Url', 'urlize')),
-			'fix_scheme'    => new \Twig_Filter_Function(array('ES\Bundle\BaseBundle\Util\Url', 'fixScheme')),
-			'localizeddate' => new \Twig_Filter_Function(array(
+			'dump'          => new \Twig_SimpleFilter(array('ES\Bundle\BaseBundle\Util\Debug', 'dump')),
+			'ucfirst'       => new \Twig_SimpleFilter('ucfirst'),
+			'floor'         => new \Twig_SimpleFilter('floor'),
+			'ceil'          => new \Twig_SimpleFilter('ceil'),
+			'urlize'        => new \Twig_SimpleFilter(array('ES\Bundle\BaseBundle\Util\Url', 'urlize')),
+			'fix_scheme'    => new \Twig_SimpleFilter(array('ES\Bundle\BaseBundle\Util\Url', 'fixScheme')),
+			'localizeddate' => new \Twig_SimpleFilter(array(
 					$this,
 					'twig_localized_date_filter'
 				), array('needs_environment' => true)),
