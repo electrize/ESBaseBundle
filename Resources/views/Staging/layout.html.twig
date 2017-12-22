@@ -1,0 +1,14 @@
+{% extends 'ESBaseBundle::base.html.twig' %}
+
+{% block stylesheets %}
+{{ parent() }}
+	<link href="{{ asset('bundles/esbase/css/staging.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block body %}
+	<div class="container">
+		<h1>{% block title %}{{ cameleon.project_title }}{% endblock %}</h1>
+		{% block es_cameleon_content %}
+		{% endblock %}
+	</div>
+{% endblock %}

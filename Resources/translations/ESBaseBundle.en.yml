@@ -1,0 +1,42 @@
+
+staging:
+    auth:
+        title: Staging
+    form:
+        username: Login
+        password: Password
+        remember_me: Remember me
+        submit: Continue
+
+form:
+    select2:
+        placeholder: Type something...
+        no_matches: No result
+        searching: Loading ...
+    csrf:
+        invalid: Form has expired. Please submit again!
+    collection:
+        add: Add
+        delete: Remove
+    gmap:
+        autocomplete:
+            placeholder: Enter a location ...
+
+contact:
+    flashes:
+        message:
+            success: Your message has been sent!
+    form:
+        email: Email
+        message: Message
+        submit: Send
+    mail:
+        subject: "[%project_title%] Contact"
+        content_text: |
+            %message%
+            --
+            %email%
+        content_html: |
+            <p>%message%</p>
+            --<br>
+            %email%

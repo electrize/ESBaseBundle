@@ -1,0 +1,18 @@
+services:
+
+    es_base.security.entry_point.basic:
+        class: %security.authentication.basic_entry_point.class%
+        arguments:
+            - %es_base.security.staging.invite%
+
+    es_base.security.listener.basic:
+        class: %security.authentication.listener.basic.class%
+        arguments:
+            - @es_base.security.context
+            - @es_base.security.authentication.manager
+            - %es_base.security.provider_key%
+            - @es_base.security.entry_point.basic
+            - @logger
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: handle, priority: 101 }
+            - { name: monolog.logger, channel: cameleon_security }

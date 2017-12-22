@@ -1,0 +1,12 @@
+--TEST--
+"icon" function
+--TEMPLATE--
+{{ icon('camera') }}
+{{ icon('camera+fw') }}
+{{ icon('camera', 'glyphicon') }}
+--DATA--
+return array();
+--EXPECT--
+<span class="fa fa-camera"></span>
+<span class="fa fa-camera fa-fw"></span>
+<span class="glyphicon glyphicon-camera"></span>

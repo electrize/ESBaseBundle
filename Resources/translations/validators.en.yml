@@ -1,0 +1,11 @@
+
+name:
+    invalid: Invalid name
+
+gmap:
+    location:
+        min_level:
+            country: You must fill the country
+            locality:  You must precise the locality
+            route:  You must precise the street
+            street_number: You must precise the street number

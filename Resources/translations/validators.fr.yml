@@ -1,0 +1,11 @@
+
+name:
+    invalid: Ce n'est pas un nom correct
+
+gmap:
+    location:
+        min_level:
+            country: Vous devez préciser le pays
+            locality: Vous devez préciser la ville
+            route:  Vous devez préciser la rue
+            street_number: Vous devez préciser le numéro de rue

@@ -1,0 +1,65 @@
+parameters:
+    es_base.security.access_listener.class: ES\Bundle\BaseBundle\Security\Listener\StagingListener
+
+    es_base.security.provider_key: cameleon_staging
+    es_base.security.login_path: /staging/login
+    es_base.security.login_check: /staging/login_check
+    es_base.security.options:
+        login_path: %es_base.security.login_path%
+        check_path: %es_base.security.login_check%
+        allowed_path: %es_base.security.staging.allowed_path%
+        allowed_user_agent: %es_base.security.staging.allowed_user_agent%
+
+services:
+    es_base.security.user_provider.users:
+        class: %security.user.provider.in_memory.class%
+        arguments:
+            users: %es_base.security.staging.users%
+
+    es_base.security.authentication.provider.dao:
+        class: %security.authentication.provider.dao.class%
+        arguments:
+            - @es_base.security.user_provider.users
+            - @security.user_checker
+            - %es_base.security.provider_key%
+            - @security.encoder_factory
+            - true
+
+    es_base.security.context:
+        class: %security.context.class%
+        arguments:
+            - @es_base.security.authentication.provider.dao
+            - @security.access.decision_manager
+            - true
+
+    es_base.security.access_listener:
+        class: %es_base.security.access_listener.class%
+        arguments:
+            - @es_base.security.context
+            - @es_base.security.authentication.manager
+            - @security.http_utils
+            - @es_base.security.authentication.rememberme.services.simplehash.cameleon_staging
+            - %es_base.security.options%
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: handle, priority: 100 }
+
+    es_base.security.exception_listener:
+        class: %security.exception_listener.class%
+        arguments:
+            - @es_base.security.context
+            - @security.authentication.trust_resolver
+            - @security.http_utils
+            - %es_base.security.provider_key%
+            - null
+            - null
+            - null
+            - @logger
+        tags:
+            - { name: kernel.event_listener, event: kernel.exception, method: onKernelException, priority: 100 }
+            - { name: monolog.logger, channel: cameleon_security }
+
+    es_base.security.authentication.manager:
+        class: %security.authentication.manager.class%
+        arguments:
+            - [ @es_base.security.authentication.provider.rememberme, @es_base.security.authentication.provider.dao ]
+            - %security.authentication.manager.erase_credentials%

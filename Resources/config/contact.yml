@@ -1,0 +1,18 @@
+parameters:
+    es_base.form.contact.type.class: ES\Bundle\BaseBundle\Form\Type\ContactFormType
+
+services:
+    es_base.form.contact.type:
+        class: %es_base.form.contact.type.class%
+        arguments:
+            - %es_base.model.contact_message.class%
+        tags:
+            - { name: form.type, alias: es_contact_form }
+
+    es_base.doctrine.listener.contact:
+        parent: es_base.doctrine.listener.concrete_class
+        arguments:
+            - %es_base.model.contact_message.class%
+            - %es_base.model.contact_message.table%
+        tags:
+            - { name: doctrine.event_subscriber }

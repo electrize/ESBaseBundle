@@ -1,0 +1,99 @@
+
+parameters:
+    es_base.security.staging.rememberme.key: staging_%secret%
+
+services:
+
+    es_base.security.entry_point.form:
+        class: %security.authentication.form_entry_point.class%
+        arguments:
+            - @http_kernel
+            - @security.http_utils
+            - %es_base.security.login_path%
+
+    es_base.security.context_listener:
+        class: %security.context_listener.class%
+        arguments:
+            - @es_base.security.context
+            - [ @es_base.security.user_provider.users ]
+            - %es_base.security.provider_key%
+            - @logger
+            - @event_dispatcher
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: handle, priority: 103 }
+            - { name: monolog.logger, channel: cameleon_security }
+
+    es_base.security.listener.form:
+        class: %security.authentication.listener.form.class%
+        arguments:
+            - @es_base.security.context
+            - @es_base.security.authentication.manager
+            - @security.authentication.session_strategy
+            - @security.http_utils
+            - %es_base.security.provider_key%
+            - @es_base.security.authentication.success_handler
+            - @es_base.security.authentication.failure_handler
+            - %es_base.security.options%
+            - @logger
+            - @event_dispatcher
+            - @security.csrf.token_manager
+        calls:
+            - [setRememberMeServices, [@es_base.security.authentication.rememberme.services.simplehash.cameleon_staging]]
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: handle, priority: 101 }
+            - { name: monolog.logger, channel: cameleon_security }
+            - { name: security.remember_me_aware }
+
+    es_base.security.authentication.success_handler:
+        class: %security.authentication.success_handler.class%
+        arguments:
+            - @security.http_utils
+            - { login_path: %es_base.security.login_path%, check_path: %es_base.security.login_check% }
+    es_base.security.authentication.failure_handler:
+        class: %security.authentication.failure_handler.class%
+        arguments:
+            - @http_kernel
+            - @security.http_utils
+            - %es_base.security.options%
+            - @logger
+        tags:
+            - { name: monolog.logger, channel: cameleon_security }
+
+
+    # Remember me
+    es_base.security.authentication.listener.rememberme:
+        class: %security.authentication.listener.rememberme.class%
+        arguments:
+            - @es_base.security.context
+            - @es_base.security.authentication.rememberme.services.simplehash.cameleon_staging
+            - @es_base.security.authentication.manager
+            - @logger
+            - @event_dispatcher
+        tags:
+            - { name: monolog.logger, channel: cameleon_security }
+            - { name: kernel.event_listener, event: kernel.request, method: handle, priority: 102 }
+
+    es_base.security.authentication.rememberme.services.simplehash.cameleon_staging:
+        class: %security.authentication.rememberme.services.simplehash.class%
+        public: false
+        arguments:
+            - [@es_base.security.user_provider.users]
+            - %es_base.security.staging.rememberme.key%
+            - %es_base.security.provider_key%
+            -
+                name: STAGING_REMEMBERME
+                lifetime: 31536000
+                path: '/'
+                domain: null
+                secure: false
+                httponly: true
+                always_remember_me: false
+                remember_me_parameter: _remember_me
+        tags:
+            - { name: monolog.logger, channel: cameleon_security }
+
+    es_base.security.authentication.provider.rememberme:
+        parent: security.authentication.provider.rememberme
+        arguments:
+            - %es_base.security.staging.rememberme.key%
+            - %es_base.security.provider_key%

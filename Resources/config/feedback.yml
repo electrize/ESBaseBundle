@@ -1,0 +1,18 @@
+parameters:
+    es_base.feedback.uservoice.provider.class: ES\Bundle\BaseBundle\Feedback\UserVoiceProvider
+    es_base.twig.feedback.extension.class: ES\Bundle\BaseBundle\Twig\Extension\FeedbackExtension
+
+services:
+    es_base.feedback.uservoice.provider:
+        abstract: true
+        class: %es_base.feedback.uservoice.provider.class%
+        arguments:
+            - @twig
+            - %es_base.feedback.options%
+
+    es_base.twig.feedback.extension:
+        class: %es_base.twig.feedback.extension.class%
+        arguments:
+            - @service_container
+        tags:
+            - { name: twig.extension, alias: es_feedback }

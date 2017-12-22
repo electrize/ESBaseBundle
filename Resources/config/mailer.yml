@@ -1,0 +1,12 @@
+parameters:
+    es_base.mailer.class: ES\Bundle\BaseBundle\Mailer\Mailer
+
+services:
+    es_base.mailer:
+        class: %es_base.mailer.class%
+        arguments:
+            - @mailer
+            - @twig
+            - @security.context
+            - { %es_base.mailer.sender_address%: %es_base.mailer.sender_name% }
+            - @security.context

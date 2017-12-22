@@ -1,0 +1,27 @@
+{% set types = {
+	notice: 'info',
+	success: 'success',
+	error: 'danger',
+	alert: 'warning'
+} %}
+
+{% if translation_domain is not defined %}
+	{% set translation_domain = null %}
+{% endif %}
+
+{% if close_button is not defined %}
+	{% set close_button = true %}
+{% endif %}
+
+{% for type, flashes in app.session.flashbag %}
+	{% for message in flashes %}
+		{% if types[type] is defined %}
+		<div class="alert alert-{{ types[type] }}">
+			{% if close_button %}
+				<button type="button" class="close" data-dismiss="alert">&times;</button>
+			{% endif %}
+			{{ message|trans({}, translation_domain) }}
+		</div>
+		{% endif %}
+	{% endfor %}
+{% endfor %}

@@ -1,0 +1,6 @@
+ES\Bundle\BaseBundle\Model\ContactMessage:
+    properties:
+        email:
+            - Email: ~
+        message:
+            - NotNull: ~

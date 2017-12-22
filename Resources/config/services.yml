@@ -1,0 +1,54 @@
+parameters:
+    es_base.model_manager_name: null
+    es_base.templating.assets.stack.class: ES\Bundle\BaseBundle\Assets\AssetsStack
+    es_base.twig.extension.base.class: ES\Bundle\BaseBundle\Twig\Extension\BaseExtension
+    es_base.object_mapper.class: ES\Bundle\BaseBundle\Mapper\ObjectMapper
+    es_base.doctrine.listener.concrete_class.class: ES\Bundle\BaseBundle\Doctrine\Mapping\ConcreteClassListener
+    es_base.assets.extension.authentication.class: ES\Bundle\BaseBundle\Assets\Extension\AuthenticationExtension
+
+services:
+    es_base.templating.assets.stack:
+        class: %es_base.templating.assets.stack.class%
+        arguments:
+            - @service_container
+            - @event_dispatcher
+
+    es_base.translator_fallback:
+        class: ES\Bundle\BaseBundle\Translation\FallbackTranslator
+        arguments:
+            - @translator
+
+    es_base.twig.extension.base:
+        class: %es_base.twig.extension.base.class%
+        arguments:
+            - @service_container
+            - @es_base.templating.assets.stack
+            - @es_base.translator_fallback
+            - @es_base.object_mapper
+            -
+                host_env: %es_base.host_env%
+                project_url: %es_base.project_url%
+                project_name: %es_base.project_name%
+                project_title: %es_base.project_title%
+                bootstrap:
+                    use_cdn: %es_base.templating.bootstrap.use_cdn%
+        tags:
+            - { name: twig.extension, alias: es_base }
+
+    es_base.object_mapper:
+        class: %es_base.object_mapper.class%
+        arguments:
+            - %es_base.object_mapping%
+
+    es_base.doctrine.listener.concrete_class:
+        abstract: true
+        public: false
+        class: %es_base.doctrine.listener.concrete_class.class%
+
+    es_base.assets.extension.authentication:
+        class: %es_base.assets.extension.authentication.class%
+        arguments:
+            - @router
+            - @security.context
+        tags:
+            - { name: es_base.assets_extension }

@@ -1,0 +1,111 @@
+#!/usr/bin/env php
+<?php
+
+require getcwd() . '/vendor/autoload.php';
+
+class ComposerBundleUpdater
+{
+	private $data;
+
+	private $lockContent;
+
+	private $lockSrc;
+
+	private $formatter;
+
+	function __construct()
+	{
+		$this->lockSrc   = getcwd() . '/composer.lock';
+		$this->formatter = new \Symfony\Component\Console\Formatter\OutputFormatter(true);
+	}
+
+	public function load()
+	{
+		$this->lockContent = file_get_contents($this->lockSrc);
+		$this->data        = json_decode($this->lockContent, true);
+	}
+
+	public function save()
+	{
+		file_put_contents($this->lockSrc, $this->lockContent);
+	}
+
+	function getPackage($packageName)
+	{
+		foreach (array('packages', 'packages-dev') as $location) {
+			foreach ($this->data[$location] as &$package) {
+				if ($package['name'] === $packageName) {
+					return $package;
+				}
+			}
+		}
+	}
+
+	public function replace()
+	{
+		$finder = new \Symfony\Component\Finder\Finder();
+		$finder
+			->files()
+			->depth(0)
+			->path('composer.json')
+			->in(array(getcwd() . '/vendor/es/*-bundle/ES/Bundle/*Bundle'));
+
+		/** @var \Symfony\Component\Finder\SplFileInfo $dir */
+		foreach ($finder as $file) {
+			$composer    = json_decode(file_get_contents($file->getRealPath()), true);
+			$packageName = $composer['name'];
+
+			$package = $this->getPackage($packageName);
+			if ($package) {
+				$this->replaceHash($package, dirname($file->getRealPath()));
+			} else {
+				$this->writeln(sprintf('<comment>Warning: bundle "%s" is not in composer.json in this project</comment>', $packageName));
+			}
+		}
+	}
+
+	function replaceHash(array &$package, $dir)
+	{
+		$state = shell_exec(sprintf('cd %s && git status -s', $dir));
+		if ($state) {
+			$this->writeln(sprintf('<comment>Warning: %s has an uncommit changes:</comment>', $package['name']));
+			$this->writeln(sprintf('<error>%s</error>', rtrim($state)));
+		} else {
+
+			$commitHash = shell_exec(sprintf('cd %s && git rev-parse HEAD', $dir));
+			$commitHash = trim($commitHash);
+
+			$currentLockCommit = $package['source']['reference'];
+
+			$this->lockContent = str_replace($currentLockCommit, $commitHash, $this->lockContent);
+
+			$this->write(sprintf('<info>%s</info>: ', $package['name']));
+			if ($currentLockCommit !== $commitHash) {
+				$this->write(sprintf('<info>%s</info> changed to <error>%s</error>', $this->getCommitName($currentLockCommit), $this->getCommitName($commitHash)));
+			} else {
+				$this->write('no changes');
+			}
+			$this->writeln();
+		}
+	}
+
+	private function getCommitName($commit)
+	{
+		return substr($commit, 0, 5);
+	}
+
+	private function writeln($message = null)
+	{
+		$this->write($message . PHP_EOL);
+	}
+
+	private function write($message)
+	{
+		echo $this->formatter->format($message);
+	}
+}
+
+$composerUpdater = new ComposerBundleUpdater();
+$composerUpdater->load();
+$composerUpdater->replace();
+$composerUpdater->save();

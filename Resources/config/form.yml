@@ -1,0 +1,67 @@
+parameters:
+    es_base.form.gmap_autocomplete.type.class: ES\Bundle\BaseBundle\Form\Type\GMapAutocompleteType
+    es_base.form.select2.type.class: ES\Bundle\BaseBundle\Form\Type\Select2Type
+    es_base.form.select2_doctrine.type.class: ES\Bundle\BaseBundle\Form\Type\Select2DoctrineType
+    es_base.form.form.extension.class: ES\Bundle\BaseBundle\Form\Extension\FormTypeExtension
+    es_base.form.collection.extension.class: ES\Bundle\BaseBundle\Form\Extension\CollectionTypeExtension
+    es_base.form.date.extension.class: ES\Bundle\BaseBundle\Form\Extension\DateTypeExtension
+    es_base.form.summernote.type.class: ES\Bundle\BaseBundle\Form\Type\SummerNoteType
+services:
+
+    es_base.form.form.extension:
+        class: %es_base.form.form.extension.class%
+        tags:
+            - { name: form.type_extension, alias: form }
+
+    es_base.form.collection.extension:
+        class: %es_base.form.collection.extension.class%
+        tags:
+            - { name: form.type_extension, alias: collection }
+
+    es_base.form.date.extension:
+        class: %es_base.form.date.extension.class%
+        scope: request
+        arguments:
+            - @es_base.templating.assets.stack
+            - @templating.helper.assets
+            - @request
+        tags:
+            - { name: form.type_extension, alias: date }
+
+    es_base.form.summernote.type:
+        class: %es_base.form.summernote.type.class%
+        scope: request
+        arguments:
+            - @es_base.templating.assets.stack
+            - @templating.helper.assets
+            - @router
+            - @request
+        tags:
+            - { name: form.type, alias: es_summernote }
+
+    es_base.form.gmap_autocomplete.type:
+        class: %es_base.form.gmap_autocomplete.type.class%
+        scope: request
+        arguments:
+            - @es_base.templating.assets.stack
+        tags:
+            - { name: form.type, alias: es_gmap_autocomplete }
+
+    es_base.form.select2.type:
+        class: %es_base.form.select2.type.class%
+        scope: request
+        arguments:
+            - @es_base.templating.assets.stack
+            - @templating.helper.assets
+            - @translator
+        tags:
+            - { name: form.type, alias: es_select2 }
+
+    es_base.form.select2_doctrine.orm.type:
+        class: %es_base.form.select2_doctrine.type.class%
+        parent: es_base.form.select2.type
+        scope: request
+        arguments:
+            - entity
+        tags:
+            - { name: form.type, alias: es_select2_orm }

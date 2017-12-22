@@ -1,0 +1,33 @@
+{% extends 'ESBaseBundle:Staging:layout.html.twig' %}
+{% trans_default_domain 'ESBaseBundle' %}
+
+{% block title %}{{ cameleon.project_title }}{% endblock %}
+
+{% block es_cameleon_content %}
+	<form class="form-signin" role="form" method="post" action="{{ path('es_base_staging_login_check') }}">
+		<input type="hidden" name="_csrf_token" value="{{ csrf_token }}"/>
+
+		<h2 class="form-signin-heading">{{ invite|trans }}</h2>
+		{% if ask_username %}
+			<input type="text" class="form-control" placeholder="{{ 'staging.form.username'|trans }}" name="_username"
+				   value="{{ last_username }}"
+				   required autofocus>
+		{% else %}
+			<input type="hidden" name="_username" value="{{ default_username }}">
+		{% endif %}
+		<input type="password" class="form-control" name="_password" placeholder="{{ 'staging.form.password'|trans }}"
+			   required{% if not ask_username %} autofocus{% endif %}>
+
+		<label>
+			<input type="checkbox" name="_remember_me" value="on">
+			{{ 'staging.form.remember_me'|trans }}
+		</label>
+
+		{% if error %}
+			<div class="alert alert-danger">{{ error|trans }}</div>
+		{% endif %}
+
+		<button class="btn btn-lg btn-primary btn-block" type="submit">{{ 'staging.form.submit'|trans }}</button>
+	</form>
+
+{% endblock %}

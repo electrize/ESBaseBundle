@@ -1,0 +1,158 @@
+{% block es_select2_widget %}
+	{% spaceless %}
+		{% set style = style|default(bootstrap_get_style()) %}
+		{% set col_size = col_size|default(bootstrap_get_col_size()) %}
+
+		{% if simple_col is not defined and bootstrap_get_simple_col() %}
+			{% set simple_col = bootstrap_get_simple_col() %}
+		{% endif %}
+		{% if attr.simple_col is defined and attr.simple_col is not empty %}
+			{% set simple_col = attr.simple_col %}
+		{% endif %}
+		{% if attr.col_size is defined and attr.col_size is not empty %}
+			{% set col_size = attr.col_size %}
+		{% endif %}
+		{% if attr.style is defined and attr.style is not empty %}
+			{% set style = attr.style %}
+		{% endif %}
+
+		{% if simple_col is defined and simple_col %}
+			<div class="col-{{ col_size }}-{{ simple_col }}">
+		{% endif %}
+
+		{% set type = type|default('hidden') %}
+
+		{% if style == 'inline' and (attr.placeholder is not defined or attr.placeholder is empty) %}
+			{% if label is empty %}
+				{% set attr = attr|merge({ 'placeholder': name|humanize }) %}
+			{% else %}
+				{% set attr = attr|merge({ 'placeholder': label}) %}
+			{% endif %}
+		{% endif %}
+		{% set full_name = full_name|replace({'[]': ''}) %}
+		{% set attr = attr|merge({ 'class': (attr.class|default('') ~ ' cameleon-select2')|trim }) %}
+
+		<input type="{{ type }}" {{ block('widget_attributes') }} {% if value is not empty %}value="{{ value }}" {% endif %}>
+
+		<script>
+			$(function () {
+				Cameleon.form.select2.setup('{{ id }}', {{ js|raw }});
+			});
+		</script>
+		{% if simple_col is defined and simple_col %}
+			</div>
+		{% endif %}
+	{% endspaceless %}
+{% endblock %}
+
+{% block es_select2_orm_widget %}
+	{{- block('es_select2_widget') -}}
+{% endblock %}
+
+{% block es_select2_mongodb_widget %}
+	{{- block('es_select2_widget') -}}
+{% endblock %}
+
+{% block es_gmap_autocomplete_widget %}
+	<div id="{{ id }}">
+		{{ block('form_widget') }}
+	</div>
+	<script>
+		$(function () {
+			Cameleon.form.gmapAutoComplete.setup('{{ id }}');
+		});
+	</script>
+{% endblock %}
+
+{% block collection_widget_row %}
+	{% spaceless %}
+		<div class="cameleon-collection-row">
+			{{ form_widget(child) }}
+			{% if allow_delete %}
+				<div class="cameleon-collection-delete">
+					<a href="javascript:void(0)" class="btn btn-danger cameleon-collection-delete-btn">
+						<i class="fa fa-remove"></i>
+						{{ delete_label|trans({}, 'ESBaseBundle') }}
+					</a>
+				</div>
+			{% endif %}
+			<hr>
+		</div>
+	{% endspaceless %}
+{% endblock %}
+
+{% block collection_widget %}
+	{% spaceless %}
+	<div id="{{ id }}-collection">
+		{% if prototype is defined %}
+			{% set child = prototype %}
+			{% set attr = attr|merge({'data-prototype': block('collection_widget_row'), 'data-prototype-name': prototype.vars.name, 'class': attr.class|default('') }) %}
+		{% endif %}
+		{% set attr = attr|merge({class:'cameleon-collection-content'}) %}
+		<div {{ block('widget_container_attributes') }}>
+			{% for child in form %}
+				{{ block('collection_widget_row') }}
+			{% endfor %}
+			{{ form_rest(form) }}
+		</div>
+		{% if allow_add %}
+			<div class="cameleon-collection-add">
+				<a href="javascript:void(0)"
+				   class="btn btn-default cameleon-collection-add-btn">
+					<i class="fa fa-plus"></i>
+					{{ add_label|trans({}, 'ESBaseBundle') }}
+				</a>
+			</div>
+		{% endif %}
+		{% endspaceless %}
+	</div>
+	<script>
+		$(function () {
+			Cameleon.form.collection.setup('#{{ id }}-collection');
+		});
+	</script>
+{% endblock collection_widget %}
+
+{% block form_errors %}
+	{% spaceless %}
+		{% set global_errors = global_errors|default(false) %}
+		{% set style = style|default(bootstrap_get_style()) %}
+
+		{% if attr.style is defined and attr.style is not empty %}
+			{% set style = attr.style %}
+		{% endif %}
+
+		{% if errors|length > 0 %}
+			<div class="alert alert-danger">
+				<ul>
+					{% for error in errors %}
+						<li>{{ error.message }}</li>
+					{% endfor %}
+				</ul>
+			</div>
+		{% endif %}
+	{% endspaceless %}
+{% endblock form_errors %}
+
+{% block date_widget %}
+	{{ form_widget(form) }}
+	<script type="text/javascript">
+		$(function () {
+			$('#{{ id }}').datepicker({
+				autoclose: true,
+				language: "{{ app.request.locale }}",
+				format: '{{ format }}',
+				todayHighlight: true
+			});
+		});
+	</script>
+{% endblock %}
+
+{% block es_summernote_widget %}
+	{{ form_widget(form) }}
+	<script type="text/javascript">
+		$(function () {
+			Cameleon.form.summerNote.setup("{{ id }}", {{ js_options|raw }});
+		});
+	</script>
+{% endblock %}

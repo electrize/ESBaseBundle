@@ -1,0 +1,12 @@
+--TEST--
+"parse_icons" filter
+--TEMPLATE--
+{{ '.icon-camera'|parse_icons }}
+{{ '.icon-camera+fw'|parse_icons }}
+{{ '.glyphicon-camera'|parse_icons }}
+--DATA--
+return array();
+--EXPECT--
+<span class="fa fa-camera"></span>
+<span class="fa fa-camera fa-fw"></span>
+<span class="glyphicon glyphicon-camera"></span>

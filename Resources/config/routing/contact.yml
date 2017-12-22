@@ -1,0 +1,4 @@
+es_base_contact_form:
+    pattern:  /contact
+    defaults: { _controller: ESBaseBundle:Contact:form }
+

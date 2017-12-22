@@ -1,0 +1,16 @@
+parameters:
+    es_base.twig.theme_renderer.class: ES\Bundle\BaseBundle\Twig\Renderer\ThemeRenderer
+    es_base.twig.theme_renderer.engine.class: ES\Bundle\BaseBundle\Twig\Renderer\ThemeRendererEngine
+
+services:
+    es_base.twig.theme_renderer.abstract:
+        public: false
+        astract: true
+        class: %es_base.twig.theme_renderer.class%
+
+    es_base.twig.theme_renderer.engine.abstract:
+        public: false
+        astract: true
+        class: %es_base.twig.theme_renderer.engine.class%
+        calls:
+            - [setEnvironment, [@twig]]

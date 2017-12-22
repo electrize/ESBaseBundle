@@ -1,0 +1,34 @@
+<script>
+	UserVoice = window.UserVoice || [];
+	$(document).ready(function () {
+		(function () {
+			var uv = document.createElement('script');
+			uv.type = 'text/javascript';
+			uv.async = true;
+			uv.src = '//widget.uservoice.com/{{ key }}.js';
+			var s = document.getElementsByTagName('script')[0];
+			s.parentNode.insertBefore(uv, s)
+		})();
+
+		// Set colors
+		UserVoice.push(['set', {
+			accent_color: '{{ accent_color }}',
+			trigger_color: '{{ trigger_color }}',
+			trigger_background_color: '{{ trigger_background_color }}',
+			locale: '{{ app.request.locale }}'
+		}]);
+
+		// Identify the user and pass traits
+		// To enable, replace sample data with actual user traits and uncomment the line
+		UserVoice.push(['identify', {
+			{% if app.user %}
+			email: "{{ app.user.email }}",
+			name: "{{ app.user.fullname }}",
+			created_at: {{ app.user.createdAt | date('U') }},
+			id: {{ app.user.id }}
+			{% endif %}
+		}]);
+		UserVoice.push(['addTrigger', { mode: '{{ mode }}', trigger_style: '{{ style }}', trigger_position: '{{ position }}' }]);
+		UserVoice.push(['autoprompt', {}]);
+	});
+</script>

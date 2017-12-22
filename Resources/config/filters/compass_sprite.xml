@@ -1,0 +1,51 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <parameters>
+        <parameter key="assetic.filter.compass_sprite.class">ES\Bundle\BaseBundle\Assets\Filter\CompassSpriteFilter</parameter>
+		<parameter key="assetic.filter.compass_sprite.bin">/usr/bin/compass</parameter>
+		<parameter key="assetic.filter.compass_sprite.timeout">null</parameter>
+		<parameter key="assetic.filter.compass_sprite.debug">false</parameter>
+		<parameter key="assetic.filter.compass_sprite.no_line_comments">false</parameter>
+		<parameter key="assetic.filter.compass_sprite.style">null</parameter>
+		<parameter key="assetic.filter.compass_sprite.images_dir">*/Resources/public/images</parameter>
+		<parameter key="assetic.filter.compass_sprite.fonts_dir">null</parameter>
+		<parameter key="assetic.filter.compass_sprite.javascripts_dir">null</parameter>
+		<parameter key="assetic.filter.compass_sprite.http_path">null</parameter>
+		<parameter key="assetic.filter.compass_sprite.http_images_path">/bundles/{bundle}/images/</parameter>
+		<parameter key="assetic.filter.compass_sprite.http_fonts_path">null</parameter>
+		<parameter key="assetic.filter.compass_sprite.http_generated_images_path">/bundles/{bundle}/images/</parameter>
+		<parameter key="assetic.filter.compass_sprite.generated_images_path">%kernel.root_dir%/../web/bundles/{bundle}/images/</parameter>
+		<parameter key="assetic.filter.compass_sprite.http_javascripts_path">null</parameter>
+		<parameter key="assetic.filter.compass_sprite.plugins" type="collection"/>
+		<parameter key="assetic.filter.compass_sprite.load_paths" type="collection"/>
+		<parameter key="assetic.filter.compass_sprite.home_env">true</parameter>
+    </parameters>
+
+    <services>
+        <service id="assetic.filter.compass_sprite" class="%assetic.filter.compass_sprite.class%">
+            <tag name="assetic.filter" alias="compass_sprite" />
+            <argument>%assetic.filter.compass_sprite.bin%</argument>
+            <argument>%assetic.ruby.bin%</argument>
+            <call method="setTimeout"><argument>%assetic.filter.compass_sprite.timeout%</argument></call>
+            <call method="setDebugInfo"><argument>%assetic.filter.compass_sprite.debug%</argument></call>
+            <call method="setNoLineComments"><argument>%assetic.filter.compass_sprite.no_line_comments%</argument></call>
+            <call method="setStyle"><argument>%assetic.filter.compass_sprite.style%</argument></call>
+            <call method="setImagesDir"><argument>%assetic.filter.compass_sprite.images_dir%</argument></call>
+            <call method="setFontsDir"><argument>%assetic.filter.compass_sprite.fonts_dir%</argument></call>
+            <call method="setJavascriptsDir"><argument>%assetic.filter.compass_sprite.javascripts_dir%</argument></call>
+            <call method="setHttpPath"><argument>%assetic.filter.compass_sprite.http_path%</argument></call>
+            <call method="setHttpImagesPath"><argument>%assetic.filter.compass_sprite.http_images_path%</argument></call>
+            <call method="setHttpFontsPath"><argument>%assetic.filter.compass_sprite.http_fonts_path%</argument></call>
+            <call method="setHttpGeneratedImagesPath"><argument>%assetic.filter.compass_sprite.http_generated_images_path%</argument></call>
+            <call method="setGeneratedImagesPath"><argument>%assetic.filter.compass_sprite.generated_images_path%</argument></call>
+            <call method="setHttpJavascriptsPath"><argument>%assetic.filter.compass_sprite.http_javascripts_path%</argument></call>
+            <call method="setPlugins"><argument>%assetic.filter.compass_sprite.plugins%</argument></call>
+            <call method="setLoadPaths"><argument>%assetic.filter.compass_sprite.load_paths%</argument></call>
+            <call method="setHomeEnv"><argument>%assetic.filter.compass_sprite.home_env%</argument></call>
+        </service>
+    </services>
+</container>
