@@ -47,13 +47,13 @@ class BaseExtension extends \Twig_Extension
 	public function getFilters()
 	{
 		return array(
-			'dump'          => new \Twig_SimpleFilter(array('ES\Bundle\BaseBundle\Util\Debug', 'dump')),
+			'dump'          => new \Twig_SimpleFilter('dump', array('ES\Bundle\BaseBundle\Util\Debug')),
 			'ucfirst'       => new \Twig_SimpleFilter('ucfirst'),
 			'floor'         => new \Twig_SimpleFilter('floor'),
 			'ceil'          => new \Twig_SimpleFilter('ceil'),
-			'urlize'        => new \Twig_SimpleFilter(array('ES\Bundle\BaseBundle\Util\Url', 'urlize')),
-			'fix_scheme'    => new \Twig_SimpleFilter(array('ES\Bundle\BaseBundle\Util\Url', 'fixScheme')),
-			'localizeddate' => new \Twig_SimpleFilter(array(
+			'urlize'        => new \Twig_SimpleFilter('urlize', array('ES\Bundle\BaseBundle\Util\Url')),
+			'fix_scheme'    => new \Twig_SimpleFilter('fixScheme', array('ES\Bundle\BaseBundle\Util\Url')),
+			'localizeddate' => new \Twig_SimpleFilter('twig_localized_date_filter', array(
 					$this,
 					'twig_localized_date_filter'
 				), array('needs_environment' => true)),
