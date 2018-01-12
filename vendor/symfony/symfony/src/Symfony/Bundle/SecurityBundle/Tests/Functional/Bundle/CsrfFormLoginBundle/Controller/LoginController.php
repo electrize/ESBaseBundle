@@ -11,27 +11,24 @@
 
 namespace Symfony\Bundle\SecurityBundle\Tests\Functional\Bundle\CsrfFormLoginBundle\Controller;
 
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
+use Symfony\Component\DependencyInjection\ContainerAware;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
-class LoginController implements ContainerAwareInterface
+class LoginController extends ContainerAware
 {
-    use ContainerAwareTrait;
-
     public function loginAction()
     {
         $form = $this->container->get('form.factory')->create('Symfony\Bundle\SecurityBundle\Tests\Functional\Bundle\CsrfFormLoginBundle\Form\UserLoginType');
 
-        return new Response($this->container->get('twig')->render('@CsrfFormLogin/Login/login.html.twig', array(
+        return $this->container->get('templating')->renderResponse('CsrfFormLoginBundle:Login:login.html.twig', array(
             'form' => $form->createView(),
-        )));
+        ));
     }
 
     public function afterLoginAction()
     {
-        return new Response($this->container->get('twig')->render('@CsrfFormLogin/Login/after_login.html.twig'));
+        return $this->container->get('templating')->renderResponse('CsrfFormLoginBundle:Login:after_login.html.twig');
     }
 
     public function loginCheckAction()

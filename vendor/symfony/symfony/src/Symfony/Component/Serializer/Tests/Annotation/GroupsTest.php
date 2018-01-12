@@ -32,7 +32,7 @@ class GroupsTest extends TestCase
      */
     public function testNotAnArrayGroupsParameter()
     {
-        new Groups(array('value' => 12));
+        new Groups(array('value' => 'coopTilleuls'));
     }
 
     /**
@@ -49,11 +49,5 @@ class GroupsTest extends TestCase
 
         $groups = new Groups(array('value' => $validData));
         $this->assertEquals($validData, $groups->getGroups());
-    }
-
-    public function testSingleGroup()
-    {
-        $groups = new Groups(array('value' => 'a'));
-        $this->assertEquals(array('a'), $groups->getGroups());
     }
 }

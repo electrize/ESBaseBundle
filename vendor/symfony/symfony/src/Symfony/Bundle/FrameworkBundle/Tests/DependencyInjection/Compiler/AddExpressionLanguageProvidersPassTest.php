@@ -26,9 +26,9 @@ class AddExpressionLanguageProvidersPassTest extends TestCase
 
         $definition = new Definition('Symfony\Bundle\FrameworkBundle\Tests\DependencyInjection\Compiler\TestProvider');
         $definition->addTag('routing.expression_language_provider');
-        $container->setDefinition('some_routing_provider', $definition->setPublic(true));
+        $container->setDefinition('some_routing_provider', $definition);
 
-        $container->register('router', '\stdClass')->setPublic(true);
+        $container->register('router', '\stdClass');
         $container->compile();
 
         $router = $container->getDefinition('router');
@@ -45,9 +45,9 @@ class AddExpressionLanguageProvidersPassTest extends TestCase
 
         $definition = new Definition('Symfony\Bundle\FrameworkBundle\Tests\DependencyInjection\Compiler\TestProvider');
         $definition->addTag('routing.expression_language_provider');
-        $container->setDefinition('some_routing_provider', $definition->setPublic(true));
+        $container->setDefinition('some_routing_provider', $definition);
 
-        $container->register('my_router', '\stdClass')->setPublic(true);
+        $container->register('my_router', '\stdClass');
         $container->setAlias('router', 'my_router');
         $container->compile();
 
@@ -65,9 +65,9 @@ class AddExpressionLanguageProvidersPassTest extends TestCase
 
         $definition = new Definition('Symfony\Bundle\FrameworkBundle\Tests\DependencyInjection\Compiler\TestProvider');
         $definition->addTag('security.expression_language_provider');
-        $container->setDefinition('some_security_provider', $definition->setPublic(true));
+        $container->setDefinition('some_security_provider', $definition);
 
-        $container->register('security.access.expression_voter', '\stdClass')->setPublic(true);
+        $container->register('security.access.expression_voter', '\stdClass');
         $container->compile();
 
         $router = $container->getDefinition('security.access.expression_voter');
@@ -84,9 +84,9 @@ class AddExpressionLanguageProvidersPassTest extends TestCase
 
         $definition = new Definition('Symfony\Bundle\FrameworkBundle\Tests\DependencyInjection\Compiler\TestProvider');
         $definition->addTag('security.expression_language_provider');
-        $container->setDefinition('some_security_provider', $definition->setPublic(true));
+        $container->setDefinition('some_security_provider', $definition);
 
-        $container->register('my_security.access.expression_voter', '\stdClass')->setPublic(true);
+        $container->register('my_security.access.expression_voter', '\stdClass');
         $container->setAlias('security.access.expression_voter', 'my_security.access.expression_voter');
         $container->compile();
 

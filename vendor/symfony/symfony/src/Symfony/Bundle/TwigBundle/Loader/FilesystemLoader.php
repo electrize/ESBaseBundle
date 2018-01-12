@@ -28,12 +28,9 @@ class FilesystemLoader extends BaseFilesystemLoader
     protected $locator;
     protected $parser;
 
-    /**
-     * @param string|null $rootPath The root path common to all relative paths (null for getcwd())
-     */
-    public function __construct(FileLocatorInterface $locator, TemplateNameParserInterface $parser, $rootPath = null)
+    public function __construct(FileLocatorInterface $locator, TemplateNameParserInterface $parser)
     {
-        parent::__construct(array(), $rootPath);
+        parent::__construct(array());
 
         $this->locator = $locator;
         $this->parser = $parser;

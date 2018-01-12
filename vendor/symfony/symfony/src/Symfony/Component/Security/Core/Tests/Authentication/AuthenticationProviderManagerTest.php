@@ -19,7 +19,6 @@ use Symfony\Component\Security\Core\Event\AuthenticationFailureEvent;
 use Symfony\Component\Security\Core\Exception\ProviderNotFoundException;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\AccountStatusException;
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
 class AuthenticationProviderManagerTest extends TestCase
@@ -37,9 +36,9 @@ class AuthenticationProviderManagerTest extends TestCase
      */
     public function testAuthenticateWithProvidersWithIncorrectInterface()
     {
-        (new AuthenticationProviderManager(array(
+        new AuthenticationProviderManager(array(
             new \stdClass(),
-        )))->authenticate($this->getMockBuilder(TokenInterface::class)->getMock());
+        ));
     }
 
     public function testAuthenticateWhenNoProviderSupportsToken()

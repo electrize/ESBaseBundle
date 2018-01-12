@@ -20,7 +20,10 @@ final class SecurityEvents
      *   - authentication based on your session.
      *   - authentication using a HTTP basic or HTTP digest header.
      *
-     * @Event("Symfony\Component\Security\Http\Event\InteractiveLoginEvent")
+     * The event listener method receives a
+     * Symfony\Component\Security\Http\Event\InteractiveLoginEvent instance.
+     *
+     * @Event
      */
     const INTERACTIVE_LOGIN = 'security.interactive_login';
 
@@ -28,7 +31,10 @@ final class SecurityEvents
      * The SWITCH_USER event occurs before switch to another user and
      * before exit from an already switched user.
      *
-     * @Event("Symfony\Component\Security\Http\Event\SwitchUserEvent")
+     * The event listener method receives a
+     * Symfony\Component\Security\Http\Event\SwitchUserEvent instance.
+     *
+     * @Event
      */
     const SWITCH_USER = 'security.switch_user';
 }

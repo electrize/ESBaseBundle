@@ -13,7 +13,6 @@ namespace Symfony\Bundle\WebProfilerBundle\Tests\EventListener;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\WebProfilerBundle\EventListener\WebDebugToolbarListener;
-use Symfony\Component\HttpFoundation\HeaderBag;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
@@ -33,7 +32,7 @@ class WebDebugToolbarListenerTest extends TestCase
 
         $response = new Response($content);
 
-        $m->invoke($listener, $response, Request::create('/'), array('csp_script_nonce' => 'scripto', 'csp_style_nonce' => 'stylo'));
+        $m->invoke($listener, $response, Request::create('/'));
         $this->assertEquals($expected, $response->getContent());
     }
 
@@ -293,8 +292,6 @@ class WebDebugToolbarListenerTest extends TestCase
         $request->expects($this->any())
             ->method('getRequestFormat')
             ->will($this->returnValue($requestFormat));
-
-        $request->headers = new HeaderBag();
 
         if ($hasSession) {
             $session = $this->getMockBuilder('Symfony\Component\HttpFoundation\Session\Session')->disableOriginalConstructor()->getMock();

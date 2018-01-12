@@ -12,8 +12,6 @@
 namespace Symfony\Bridge\Doctrine\Test;
 
 use Doctrine\Common\Annotations\AnnotationReader;
-use Doctrine\Common\Cache\ArrayCache;
-use Doctrine\ORM\Configuration;
 use Doctrine\ORM\Mapping\Driver\AnnotationDriver;
 use Doctrine\ORM\EntityManager;
 use PHPUnit\Framework\TestCase;
@@ -28,19 +26,22 @@ class DoctrineTestHelper
     /**
      * Returns an entity manager for testing.
      *
-     * @param Configuration|null $config
-     *
      * @return EntityManager
      */
-    public static function createTestEntityManager(Configuration $config = null)
+    public static function createTestEntityManager()
     {
         if (!extension_loaded('pdo_sqlite')) {
             TestCase::markTestSkipped('Extension pdo_sqlite is required.');
         }
 
-        if (null === $config) {
-            $config = self::createTestConfiguration();
-        }
+        $config = new \Doctrine\ORM\Configuration();
+        $config->setEntityNamespaces(array('SymfonyTestsDoctrine' => 'Symfony\Bridge\Doctrine\Tests\Fixtures'));
+        $config->setAutoGenerateProxyClasses(true);
+        $config->setProxyDir(\sys_get_temp_dir());
+        $config->setProxyNamespace('SymfonyTests\Doctrine');
+        $config->setMetadataDriverImpl(new AnnotationDriver(new AnnotationReader()));
+        $config->setQueryCacheImpl(new \Doctrine\Common\Cache\ArrayCache());
+        $config->setMetadataCacheImpl(new \Doctrine\Common\Cache\ArrayCache());
 
         $params = array(
             'driver' => 'pdo_sqlite',
@@ -48,23 +49,6 @@ class DoctrineTestHelper
         );
 
         return EntityManager::create($params, $config);
-    }
-
-    /**
-     * @return Configuration
-     */
-    public static function createTestConfiguration()
-    {
-        $config = new Configuration();
-        $config->setEntityNamespaces(array('SymfonyTestsDoctrine' => 'Symfony\Bridge\Doctrine\Tests\Fixtures'));
-        $config->setAutoGenerateProxyClasses(true);
-        $config->setProxyDir(\sys_get_temp_dir());
-        $config->setProxyNamespace('SymfonyTests\Doctrine');
-        $config->setMetadataDriverImpl(new AnnotationDriver(new AnnotationReader()));
-        $config->setQueryCacheImpl(new ArrayCache());
-        $config->setMetadataCacheImpl(new ArrayCache());
-
-        return $config;
     }
 
     /**

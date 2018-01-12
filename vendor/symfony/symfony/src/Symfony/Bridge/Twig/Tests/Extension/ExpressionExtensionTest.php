@@ -18,6 +18,8 @@ use Twig\Loader\ArrayLoader;
 
 class ExpressionExtensionTest extends TestCase
 {
+    protected $helper;
+
     public function testExpressionCreation()
     {
         $template = "{{ expression('1 == 1') }}";

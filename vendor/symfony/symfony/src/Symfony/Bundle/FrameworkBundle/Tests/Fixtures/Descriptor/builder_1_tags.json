@@ -2,37 +2,35 @@
     "tag1": [
         {
             "class": "Full\\Qualified\\Class2",
+            "scope": "container",
             "public": false,
             "synthetic": true,
             "lazy": false,
             "shared": true,
+            "synchronized": false,
             "abstract": false,
             "autowire": false,
-            "autoconfigure": false,
+            "autowiring_types": [],
             "file": "\/path\/to\/file",
             "factory_service": "factory.service",
-            "factory_method": "get",
-            "calls": [
-                "setMailer"
-            ]
+            "factory_method": "get"
         }
     ],
     "tag2": [
         {
             "class": "Full\\Qualified\\Class2",
+            "scope": "container",
             "public": false,
             "synthetic": true,
             "lazy": false,
             "shared": true,
+            "synchronized": false,
             "abstract": false,
             "autowire": false,
-            "autoconfigure": false,
+            "autowiring_types": [],
             "file": "\/path\/to\/file",
             "factory_service": "factory.service",
-            "factory_method": "get",
-            "calls": [
-                "setMailer"
-            ]
+            "factory_method": "get"
         }
     ]
 }

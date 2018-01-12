@@ -12,7 +12,6 @@
 namespace Symfony\Bundle\TwigBundle\Tests\DependencyInjection\Compiler;
 
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\DependencyInjection\Alias;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Bundle\TwigBundle\DependencyInjection\Compiler\TwigLoaderPass;
 
@@ -56,8 +55,7 @@ class TwigLoaderPassTest extends TestCase
             ->will($this->returnValue($serviceIds));
         $this->builder->expects($this->once())
             ->method('setAlias')
-            ->with('twig.loader', 'test_loader_1')
-            ->will($this->returnValue(new Alias('test_loader_1')));
+            ->with('twig.loader', 'test_loader_1');
 
         $this->pass->process($this->builder);
     }
@@ -87,8 +85,7 @@ class TwigLoaderPassTest extends TestCase
             ->will($this->returnValue($this->chainLoader));
         $this->builder->expects($this->once())
             ->method('setAlias')
-            ->with('twig.loader', 'twig.loader.chain')
-            ->will($this->returnValue(new Alias('twig.loader.chain')));
+            ->with('twig.loader', 'twig.loader.chain');
 
         $this->pass->process($this->builder);
         $calls = $this->chainLoader->getMethodCalls();
@@ -124,8 +121,7 @@ class TwigLoaderPassTest extends TestCase
             ->will($this->returnValue($this->chainLoader));
         $this->builder->expects($this->once())
             ->method('setAlias')
-            ->with('twig.loader', 'twig.loader.chain')
-            ->will($this->returnValue(new Alias('twig.loader.chain')));
+            ->with('twig.loader', 'twig.loader.chain');
 
         $this->pass->process($this->builder);
         $calls = $this->chainLoader->getMethodCalls();

@@ -74,11 +74,9 @@ class ClockMock
         $self = get_called_class();
 
         $mockedNs = array(substr($class, 0, strrpos($class, '\\')));
-        if (0 < strpos($class, '\\Tests\\')) {
+        if (strpos($class, '\\Tests\\')) {
             $ns = str_replace('\\Tests\\', '\\', $class);
             $mockedNs[] = substr($ns, 0, strrpos($ns, '\\'));
-        } elseif (0 === strpos($class, 'Tests\\')) {
-            $mockedNs[] = substr($class, 6, strrpos($class, '\\') - 6);
         }
         foreach ($mockedNs as $ns) {
             if (function_exists($ns.'\time')) {

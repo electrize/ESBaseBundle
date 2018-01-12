@@ -417,10 +417,6 @@ class MenuItem implements ItemInterface
 
     public function setParent(ItemInterface $parent = null)
     {
-        if ($parent === $this) {
-            throw new \InvalidArgumentException('Item cannot be a child of itself');
-        }
-
         $this->parent = $parent;
 
         return $this;

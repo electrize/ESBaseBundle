@@ -15,7 +15,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\SecurityContext;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Exposes some Symfony parameters and services as an "app" global variable.
@@ -24,10 +25,19 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
  */
 class AppVariable
 {
+    private $container;
     private $tokenStorage;
     private $requestStack;
     private $environment;
     private $debug;
+
+    /**
+     * @deprecated since version 2.7, to be removed in 3.0.
+     */
+    public function setContainer(ContainerInterface $container)
+    {
+        $this->container = $container;
+    }
 
     public function setTokenStorage(TokenStorageInterface $tokenStorage)
     {
@@ -50,19 +60,23 @@ class AppVariable
     }
 
     /**
-     * Returns the current token.
+     * Returns the security context service.
      *
-     * @return TokenInterface|null
+     * @deprecated since version 2.6, to be removed in 3.0.
      *
-     * @throws \RuntimeException When the TokenStorage is not available
+     * @return SecurityContext|null The security context
      */
-    public function getToken()
+    public function getSecurity()
     {
-        if (null === $tokenStorage = $this->tokenStorage) {
-            throw new \RuntimeException('The "app.token" variable is not available.');
+        @trigger_error('The "app.security" variable is deprecated since Symfony 2.6 and will be removed in 3.0.', E_USER_DEPRECATED);
+
+        if (null === $this->container) {
+            throw new \RuntimeException('The "app.security" variable is not available.');
         }
 
-        return $tokenStorage->getToken();
+        if ($this->container->has('security.context')) {
+            return $this->container->get('security.context');
+        }
     }
 
     /**
@@ -74,11 +88,17 @@ class AppVariable
      */
     public function getUser()
     {
-        if (null === $tokenStorage = $this->tokenStorage) {
-            throw new \RuntimeException('The "app.user" variable is not available.');
+        if (null === $this->tokenStorage) {
+            if (null === $this->container) {
+                throw new \RuntimeException('The "app.user" variable is not available.');
+            } elseif (!$this->container->has('security.context')) {
+                return;
+            }
+
+            $this->tokenStorage = $this->container->get('security.context');
         }
 
-        if (!$token = $tokenStorage->getToken()) {
+        if (!$token = $this->tokenStorage->getToken()) {
             return;
         }
 
@@ -96,7 +116,11 @@ class AppVariable
     public function getRequest()
     {
         if (null === $this->requestStack) {
-            throw new \RuntimeException('The "app.request" variable is not available.');
+            if (null === $this->container) {
+                throw new \RuntimeException('The "app.request" variable is not available.');
+            }
+
+            $this->requestStack = $this->container->get('request_stack');
         }
 
         return $this->requestStack->getCurrentRequest();
@@ -109,7 +133,7 @@ class AppVariable
      */
     public function getSession()
     {
-        if (null === $this->requestStack) {
+        if (null === $this->requestStack && null === $this->container) {
             throw new \RuntimeException('The "app.session" variable is not available.');
         }
 
@@ -144,40 +168,5 @@ class AppVariable
         }
 
         return $this->debug;
-    }
-
-    /**
-     * Returns some or all the existing flash messages:
-     *  * getFlashes() returns all the flash messages
-     *  * getFlashes('notice') returns a simple array with flash messages of that type
-     *  * getFlashes(array('notice', 'error')) returns a nested array of type => messages.
-     *
-     * @return array
-     */
-    public function getFlashes($types = null)
-    {
-        try {
-            $session = $this->getSession();
-            if (null === $session) {
-                return array();
-            }
-        } catch (\RuntimeException $e) {
-            return array();
-        }
-
-        if (null === $types || '' === $types || array() === $types) {
-            return $session->getFlashBag()->all();
-        }
-
-        if (is_string($types)) {
-            return $session->getFlashBag()->get($types);
-        }
-
-        $result = array();
-        foreach ($types as $type) {
-            $result[$type] = $session->getFlashBag()->get($type);
-        }
-
-        return $result;
     }
 }

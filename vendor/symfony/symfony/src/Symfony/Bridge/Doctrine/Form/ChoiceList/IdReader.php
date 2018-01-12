@@ -20,7 +20,7 @@ use Symfony\Component\Form\Exception\RuntimeException;
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
  *
- * @internal
+ * @internal this class is meant for internal use only
  */
 class IdReader
 {

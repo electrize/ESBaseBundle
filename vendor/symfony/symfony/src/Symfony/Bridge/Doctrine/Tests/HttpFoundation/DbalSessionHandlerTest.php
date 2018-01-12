@@ -18,8 +18,6 @@ use Symfony\Bridge\Doctrine\HttpFoundation\DbalSessionHandler;
  * Test class for DbalSessionHandler.
  *
  * @author Drak <drak@zikula.org>
- *
- * @group legacy
  */
 class DbalSessionHandlerTest extends TestCase
 {

@@ -13,6 +13,9 @@ namespace Symfony\Bundle\FrameworkBundle\Tests\Console\Descriptor;
 
 use Symfony\Bundle\FrameworkBundle\Console\Descriptor\JsonDescriptor;
 
+/**
+ * @requires PHP 5.4
+ */
 class JsonDescriptorTest extends AbstractDescriptorTest
 {
     protected function getDescriptor()

@@ -31,32 +31,18 @@ use Twig\Source;
  */
 class LintCommand extends Command
 {
-    protected static $defaultName = 'lint:twig';
-
     private $twig;
 
     /**
-     * @param Environment $twig
+     * {@inheritdoc}
      */
-    public function __construct($twig = null)
+    public function __construct($name = 'lint:twig')
     {
-        if (!$twig instanceof Environment) {
-            @trigger_error(sprintf('Passing a command name as the first argument of "%s" is deprecated since version 3.4 and will be removed in 4.0. If the command was registered by convention, make it a service instead.', __METHOD__), E_USER_DEPRECATED);
-
-            parent::__construct($twig);
-
-            return;
-        }
-
-        parent::__construct();
-
-        $this->twig = $twig;
+        parent::__construct($name);
     }
 
     public function setTwigEnvironment(Environment $twig)
     {
-        @trigger_error(sprintf('Method "%s" is deprecated since version 3.4 and will be removed in 4.0.', __METHOD__), E_USER_DEPRECATED);
-
         $this->twig = $twig;
     }
 
@@ -65,14 +51,13 @@ class LintCommand extends Command
      */
     protected function getTwigEnvironment()
     {
-        @trigger_error(sprintf('Method "%s" is deprecated since version 3.4 and will be removed in 4.0.', __METHOD__), E_USER_DEPRECATED);
-
         return $this->twig;
     }
 
     protected function configure()
     {
         $this
+            ->setAliases(array('twig:lint'))
             ->setDescription('Lints a template and outputs encountered errors')
             ->addOption('format', null, InputOption::VALUE_REQUIRED, 'The output format', 'txt')
             ->addArgument('filename', InputArgument::IS_ARRAY)
@@ -102,17 +87,14 @@ EOF
     {
         $io = new SymfonyStyle($input, $output);
 
-        // BC to be removed in 4.0
-        if (__CLASS__ !== get_class($this)) {
-            $r = new \ReflectionMethod($this, 'getTwigEnvironment');
-            if (__CLASS__ !== $r->getDeclaringClass()->getName()) {
-                @trigger_error(sprintf('Usage of method "%s" is deprecated since version 3.4 and will no longer be supported in 4.0. Construct the command with its required arguments instead.', get_class($this).'::getTwigEnvironment'), E_USER_DEPRECATED);
-
-                $this->twig = $this->getTwigEnvironment();
-            }
+        if (false !== strpos($input->getFirstArgument(), ':l')) {
+            $io->caution('The use of "twig:lint" command is deprecated since version 2.7 and will be removed in 3.0. Use the "lint:twig" instead.');
         }
-        if (null === $this->twig) {
-            throw new \RuntimeException('The Twig environment needs to be set.');
+
+        if (null === $twig = $this->getTwigEnvironment()) {
+            $io->error('The Twig environment needs to be set.');
+
+            return 1;
         }
 
         $filenames = $input->getArgument('filename');
@@ -127,20 +109,20 @@ EOF
                 $template .= fread(STDIN, 1024);
             }
 
-            return $this->display($input, $output, $io, array($this->validate($template, uniqid('sf_', true))));
+            return $this->display($input, $output, $io, array($this->validate($twig, $template, uniqid('sf_', true))));
         }
 
-        $filesInfo = $this->getFilesInfo($filenames);
+        $filesInfo = $this->getFilesInfo($twig, $filenames);
 
         return $this->display($input, $output, $io, $filesInfo);
     }
 
-    private function getFilesInfo(array $filenames)
+    private function getFilesInfo(Environment $twig, array $filenames)
     {
         $filesInfo = array();
         foreach ($filenames as $filename) {
             foreach ($this->findFiles($filename) as $file) {
-                $filesInfo[] = $this->validate(file_get_contents($file), $file);
+                $filesInfo[] = $this->validate($twig, file_get_contents($file), $file);
             }
         }
 
@@ -158,19 +140,19 @@ EOF
         throw new \RuntimeException(sprintf('File or directory "%s" is not readable', $filename));
     }
 
-    private function validate($template, $file)
+    private function validate(Environment $twig, $template, $file)
     {
-        $realLoader = $this->twig->getLoader();
+        $realLoader = $twig->getLoader();
         try {
             $temporaryLoader = new ArrayLoader(array((string) $file => $template));
-            $this->twig->setLoader($temporaryLoader);
-            $nodeTree = $this->twig->parse($this->twig->tokenize(new Source($template, (string) $file)));
-            $this->twig->compile($nodeTree);
-            $this->twig->setLoader($realLoader);
+            $twig->setLoader($temporaryLoader);
+            $nodeTree = $twig->parse($twig->tokenize(new Source($template, (string) $file)));
+            $twig->compile($nodeTree);
+            $twig->setLoader($realLoader);
         } catch (Error $e) {
-            $this->twig->setLoader($realLoader);
+            $twig->setLoader($realLoader);
 
-            return array('template' => $template, 'file' => $file, 'line' => $e->getTemplateLine(), 'valid' => false, 'exception' => $e);
+            return array('template' => $template, 'file' => $file, 'valid' => false, 'exception' => $e);
         }
 
         return array('template' => $template, 'file' => $file, 'valid' => true);
@@ -224,7 +206,7 @@ EOF
             }
         });
 
-        $output->writeln(json_encode($filesInfo, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        $output->writeln(json_encode($filesInfo, defined('JSON_PRETTY_PRINT') ? JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES : 0));
 
         return min($errors, 1);
     }

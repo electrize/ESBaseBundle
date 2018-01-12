@@ -29,11 +29,6 @@ class Section
     private $origin;
 
     /**
-     * @var bool
-     */
-    private $morePrecision;
-
-    /**
      * @var string
      */
     private $id;
@@ -44,13 +39,11 @@ class Section
     private $children = array();
 
     /**
-     * @param float|null $origin        Set the origin of the events in this section, use null to set their origin to their start time
-     * @param bool       $morePrecision If true, time is stored as float to keep the original microsecond precision
+     * @param float|null $origin Set the origin of the events in this section, use null to set their origin to their start time
      */
-    public function __construct($origin = null, $morePrecision = false)
+    public function __construct($origin = null)
     {
         $this->origin = is_numeric($origin) ? $origin : null;
-        $this->morePrecision = $morePrecision;
     }
 
     /**
@@ -79,7 +72,7 @@ class Section
     public function open($id)
     {
         if (null === $session = $this->get($id)) {
-            $session = $this->children[] = new self(microtime(true) * 1000, $this->morePrecision);
+            $session = $this->children[] = new self(microtime(true) * 1000);
         }
 
         return $session;
@@ -118,7 +111,7 @@ class Section
     public function startEvent($name, $category)
     {
         if (!isset($this->events[$name])) {
-            $this->events[$name] = new StopwatchEvent($this->origin ?: microtime(true) * 1000, $category, $this->morePrecision);
+            $this->events[$name] = new StopwatchEvent($this->origin ?: microtime(true) * 1000, $category);
         }
 
         return $this->events[$name]->start();

@@ -4,10 +4,12 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
-    <services>
-        <defaults public="false" />
+    <parameters>
+        <parameter key="fragment.listener.class">Symfony\Component\HttpKernel\EventListener\FragmentListener</parameter>
+    </parameters>
 
-        <service id="fragment.listener" class="Symfony\Component\HttpKernel\EventListener\FragmentListener">
+    <services>
+        <service id="fragment.listener" class="%fragment.listener.class%">
             <tag name="kernel.event_subscriber" />
             <argument type="service" id="uri_signer" />
             <argument>%fragment.path%</argument>

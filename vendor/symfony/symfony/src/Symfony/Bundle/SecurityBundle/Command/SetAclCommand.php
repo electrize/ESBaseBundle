@@ -11,15 +11,11 @@
 
 namespace Symfony\Bundle\SecurityBundle\Command;
 
-@trigger_error(sprintf('Class "%s" is deprecated since version 3.4 and will be removed in 4.0. Use Symfony\Bundle\AclBundle\Command\SetAclCommand instead.', SetAclCommand::class), E_USER_DEPRECATED);
-
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Security\Acl\Domain\ObjectIdentity;
 use Symfony\Component\Security\Acl\Domain\RoleSecurityIdentity;
 use Symfony\Component\Security\Acl\Domain\UserSecurityIdentity;
@@ -31,39 +27,14 @@ use Symfony\Component\Security\Acl\Model\MutableAclProviderInterface;
  * Sets ACL for objects.
  *
  * @author Kévin Dunglas <kevin@les-tilleuls.coop>
- *
- * @deprecated since version 3.4, to be removed in 4.0. See Symfony\Bundle\AclBundle\Command\SetAclCommand instead.
  */
 class SetAclCommand extends ContainerAwareCommand
 {
-    protected static $defaultName = 'acl:set';
-
-    private $provider;
-
-    /**
-     * @param MutableAclProviderInterface $provider
-     */
-    public function __construct($provider = null)
-    {
-        if (!$provider instanceof MutableAclProviderInterface) {
-            parent::__construct($provider);
-
-            return;
-        }
-
-        parent::__construct();
-
-        $this->provider = $provider;
-    }
-
     /**
      * {@inheritdoc}
      */
     public function isEnabled()
     {
-        if (null !== $this->provider) {
-            return parent::isEnabled();
-        }
         if (!$this->getContainer()->has('security.acl.provider')) {
             return false;
         }
@@ -82,6 +53,7 @@ class SetAclCommand extends ContainerAwareCommand
     protected function configure()
     {
         $this
+            ->setName('acl:set')
             ->setDescription('Sets ACL for objects')
             ->setHelp(<<<EOF
 The <info>%command.name%</info> command sets ACL.
@@ -117,12 +89,6 @@ EOF
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        (new SymfonyStyle($input, $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output))->warning('Command "acl:set" is deprecated since version 3.4 and will be removed from SecurityBundle in 4.0. Install symfony/acl-bundle to use this command.');
-
-        if (null === $this->provider) {
-            $this->provider = $this->getContainer()->get('security.acl.provider');
-        }
-
         // Parse arguments
         $objectIdentities = array();
         $maskBuilder = $this->getMaskBuilder();
@@ -168,15 +134,20 @@ EOF
             }
         }
 
+        /** @var $container \Symfony\Component\DependencyInjection\ContainerInterface */
+        $container = $this->getContainer();
+        /** @var $aclProvider MutableAclProviderInterface */
+        $aclProvider = $container->get('security.acl.provider');
+
         // Sets ACL
         foreach ($objectIdentities as $objectIdentity) {
             // Creates a new ACL if it does not already exist
             try {
-                $this->provider->createAcl($objectIdentity);
+                $aclProvider->createAcl($objectIdentity);
             } catch (AclAlreadyExistsException $e) {
             }
 
-            $acl = $this->provider->findAcl($objectIdentity, $securityIdentities);
+            $acl = $aclProvider->findAcl($objectIdentity, $securityIdentities);
 
             foreach ($securityIdentities as $securityIdentity) {
                 if ($classScopeOption) {
@@ -186,7 +157,7 @@ EOF
                 }
             }
 
-            $this->provider->updateAcl($acl);
+            $aclProvider->updateAcl($acl);
         }
     }
 

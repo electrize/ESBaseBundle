@@ -68,12 +68,13 @@ class DateTimeToLocalizedStringTransformer extends BaseDateTimeTransformer
     /**
      * Transforms a normalized date into a localized date string/array.
      *
-     * @param \DateTimeInterface $dateTime A DateTimeInterface object
+     * @param \DateTime|\DateTimeInterface $dateTime A DateTime object
      *
      * @return string|array Localized date string/array
      *
-     * @throws TransformationFailedException if the given value is not a \DateTimeInterface
-     *                                       or if the date could not be transformed
+     * @throws TransformationFailedException if the given value is not an instance
+     *                                       of \DateTime or \DateTimeInterface or
+     *                                       if the date could not be transformed
      */
     public function transform($dateTime)
     {
@@ -81,8 +82,8 @@ class DateTimeToLocalizedStringTransformer extends BaseDateTimeTransformer
             return '';
         }
 
-        if (!$dateTime instanceof \DateTimeInterface) {
-            throw new TransformationFailedException('Expected a \DateTimeInterface.');
+        if (!$dateTime instanceof \DateTime && !$dateTime instanceof \DateTimeInterface) {
+            throw new TransformationFailedException('Expected a \DateTime or \DateTimeInterface.');
         }
 
         $value = $this->getIntlDateFormatter()->format($dateTime->getTimestamp());

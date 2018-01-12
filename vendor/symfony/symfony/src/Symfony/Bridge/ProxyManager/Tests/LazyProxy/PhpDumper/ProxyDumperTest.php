@@ -55,7 +55,7 @@ class ProxyDumperTest extends TestCase
         $code = $this->dumper->getProxyCode($definition);
 
         $this->assertStringMatchesFormat(
-            '%Aclass ProxyDumperTest%aextends%w'
+            '%Aclass SymfonyBridgeProxyManagerTestsLazyProxyPhpDumperProxyDumperTest%aextends%w'
                 .'\Symfony\Bridge\ProxyManager\Tests\LazyProxy\PhpDumper\ProxyDumperTest%a',
             $code
         );
@@ -67,27 +67,14 @@ class ProxyDumperTest extends TestCase
 
         $definition->setLazy(true);
 
-        $code = $this->dumper->getProxyFactoryCode($definition, 'foo', '$this->getFoo2Service(false)');
-
-        $this->assertStringMatchesFormat(
-            '%A$wrappedInstance = $this->getFoo2Service(false);%w$proxy->setProxyInitializer(null);%A',
-            $code
-        );
-    }
-
-    /**
-     * @group legacy
-     */
-    public function testLegacyGetProxyFactoryCode()
-    {
-        $definition = new Definition(__CLASS__);
-
-        $definition->setLazy(true);
-
         $code = $this->dumper->getProxyFactoryCode($definition, 'foo');
 
         $this->assertStringMatchesFormat(
-            '%A$wrappedInstance = $this->getFooService(false);%w$proxy->setProxyInitializer(null);%A',
+            '%wif ($lazyLoad) {%w$container = $this;%wreturn $this->services[\'foo\'] =%s'
+            .'SymfonyBridgeProxyManagerTestsLazyProxyPhpDumperProxyDumperTest_%s(%wfunction '
+            .'(&$wrappedInstance, \ProxyManager\Proxy\LazyLoadingInterface $proxy) use ($container) {'
+            .'%w$wrappedInstance = $container->getFooService(false);%w$proxy->setProxyInitializer(null);'
+            .'%wreturn true;%w}%w);%w}%w',
             $code
         );
     }

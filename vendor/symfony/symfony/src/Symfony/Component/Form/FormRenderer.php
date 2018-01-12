@@ -13,6 +13,9 @@ namespace Symfony\Component\Form;
 
 use Symfony\Component\Form\Exception\LogicException;
 use Symfony\Component\Form\Exception\BadMethodCallException;
+use Symfony\Component\Form\Exception\UnexpectedTypeException;
+use Symfony\Component\Form\Extension\Csrf\CsrfProvider\CsrfProviderAdapter;
+use Symfony\Component\Form\Extension\Csrf\CsrfProvider\CsrfProviderInterface;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 /**
@@ -30,8 +33,17 @@ class FormRenderer implements FormRendererInterface
     private $hierarchyLevelMap = array();
     private $variableStack = array();
 
-    public function __construct(FormRendererEngineInterface $engine, CsrfTokenManagerInterface $csrfTokenManager = null)
+    /**
+     * @throws UnexpectedTypeException
+     */
+    public function __construct(FormRendererEngineInterface $engine, $csrfTokenManager = null)
     {
+        if ($csrfTokenManager instanceof CsrfProviderInterface) {
+            $csrfTokenManager = new CsrfProviderAdapter($csrfTokenManager);
+        } elseif (null !== $csrfTokenManager && !$csrfTokenManager instanceof CsrfTokenManagerInterface) {
+            throw new UnexpectedTypeException($csrfTokenManager, 'CsrfProviderInterface or CsrfTokenManagerInterface or null');
+        }
+
         $this->engine = $engine;
         $this->csrfTokenManager = $csrfTokenManager;
     }
@@ -47,10 +59,9 @@ class FormRenderer implements FormRendererInterface
     /**
      * {@inheritdoc}
      */
-    public function setTheme(FormView $view, $themes /*, $useDefaultThemes = true */)
+    public function setTheme(FormView $view, $themes)
     {
-        $args = func_get_args();
-        $this->engine->setTheme($view, $themes, isset($args[2]) ? (bool) $args[2] : true);
+        $this->engine->setTheme($view, $themes);
     }
 
     /**

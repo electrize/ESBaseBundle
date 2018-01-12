@@ -14,9 +14,6 @@ namespace Symfony\Component\ClassLoader\Tests;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\ClassLoader\ClassLoader;
 
-/**
- * @group legacy
- */
 class ClassLoaderTest extends TestCase
 {
     public function testGetPrefixes()

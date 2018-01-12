@@ -22,7 +22,6 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Security\Core\Exception\InsufficientAuthenticationException;
 use Symfony\Component\Security\Core\Exception\LogoutException;
-use Symfony\Component\Security\Http\Util\TargetPathTrait;
 use Symfony\Component\Security\Http\HttpUtils;
 use Symfony\Component\HttpFoundation\Request;
 use Psr\Log\LoggerInterface;
@@ -40,8 +39,6 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  */
 class ExceptionListener
 {
-    use TargetPathTrait;
-
     private $tokenStorage;
     private $providerKey;
     private $accessDeniedHandler;
@@ -70,7 +67,7 @@ class ExceptionListener
      */
     public function register(EventDispatcherInterface $dispatcher)
     {
-        $dispatcher->addListener(KernelEvents::EXCEPTION, array($this, 'onKernelException'), 1);
+        $dispatcher->addListener(KernelEvents::EXCEPTION, array($this, 'onKernelException'));
     }
 
     /**
@@ -106,7 +103,6 @@ class ExceptionListener
 
         try {
             $event->setResponse($this->startAuthentication($event->getRequest(), $exception));
-            $event->allowCustomResponseCode();
         } catch (\Exception $e) {
             $event->setException($e);
         }
@@ -150,7 +146,6 @@ class ExceptionListener
                 $subRequest->attributes->set(Security::ACCESS_DENIED_ERROR, $exception);
 
                 $event->setResponse($event->getKernel()->handle($subRequest, HttpKernelInterface::SUB_REQUEST, true));
-                $event->allowCustomResponseCode();
             }
         } catch (\Exception $e) {
             if (null !== $this->logger) {
@@ -196,22 +191,14 @@ class ExceptionListener
             }
         }
 
-        $response = $this->authenticationEntryPoint->start($request, $authException);
-
-        if (!$response instanceof Response) {
-            $given = is_object($response) ? get_class($response) : gettype($response);
-
-            throw new \LogicException(sprintf('The %s::start() method must return a Response object (%s returned)', get_class($this->authenticationEntryPoint), $given));
-        }
-
-        return $response;
+        return $this->authenticationEntryPoint->start($request, $authException);
     }
 
     protected function setTargetPath(Request $request)
     {
         // session isn't required when using HTTP basic authentication mechanism for example
         if ($request->hasSession() && $request->isMethodSafe(false) && !$request->isXmlHttpRequest()) {
-            $this->saveTargetPath($request->getSession(), $this->providerKey, $request->getUri());
+            $request->getSession()->set('_security.'.$this->providerKey.'.target_path', $request->getUri());
         }
     }
 }

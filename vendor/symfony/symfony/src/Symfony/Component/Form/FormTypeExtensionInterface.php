@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\Form;
 
-use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 /**
  * @author Bernhard Schussek <bschussek@gmail.com>
@@ -49,11 +49,15 @@ interface FormTypeExtensionInterface
     public function finishView(FormView $view, FormInterface $form, array $options);
 
     /**
-     * Configures the options for this type.
+     * Overrides the default options from the extended type.
      *
-     * @param OptionsResolver $resolver The resolver for the options
+     * @param OptionsResolverInterface $resolver The resolver for the options
+     *
+     * @deprecated since version 2.7, to be removed in 3.0.
+     *             Use the method configureOptions instead. This method will be
+     *             added to the FormTypeExtensionInterface with Symfony 3.0
      */
-    public function configureOptions(OptionsResolver $resolver);
+    public function setDefaultOptions(OptionsResolverInterface $resolver);
 
     /**
      * Returns the name of the type being extended.

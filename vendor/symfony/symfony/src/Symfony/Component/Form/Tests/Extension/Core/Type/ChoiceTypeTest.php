@@ -13,6 +13,7 @@ namespace Symfony\Component\Form\Tests\Extension\Core\Type;
 
 use Symfony\Component\Form\ChoiceList\View\ChoiceGroupView;
 use Symfony\Component\Form\ChoiceList\View\ChoiceView;
+use Symfony\Component\Form\Extension\Core\ChoiceList\ObjectChoiceList;
 
 class ChoiceTypeTest extends BaseTypeTest
 {
@@ -60,6 +61,18 @@ class ChoiceTypeTest extends BaseTypeTest
         ),
     );
 
+    protected $groupedChoicesFlipped = array(
+        'Symfony' => array(
+            'a' => 'Bernhard',
+            'b' => 'Fabien',
+            'c' => 'Kris',
+        ),
+        'Doctrine' => array(
+            'd' => 'Jon',
+            'e' => 'Roman',
+        ),
+    );
+
     protected function setUp()
     {
         parent::setUp();
@@ -81,12 +94,32 @@ class ChoiceTypeTest extends BaseTypeTest
     }
 
     /**
+     * @group legacy
+     */
+    public function testLegacyName()
+    {
+        $form = $this->factory->create('choice');
+
+        $this->assertSame('choice', $form->getConfig()->getType()->getName());
+    }
+
+    /**
      * @expectedException \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
      */
     public function testChoicesOptionExpectsArrayOrTraversable()
     {
         $this->factory->create(static::TESTED_TYPE, null, array(
             'choices' => new \stdClass(),
+        ));
+    }
+
+    /**
+     * @expectedException \Symfony\Component\OptionsResolver\Exception\InvalidOptionsException
+     */
+    public function testChoiceListOptionExpectsChoiceListInterface()
+    {
+        $this->factory->create(static::TESTED_TYPE, null, array(
+            'choice_list' => array('foo' => 'foo'),
         ));
     }
 
@@ -102,7 +135,9 @@ class ChoiceTypeTest extends BaseTypeTest
 
     public function testChoiceListAndChoicesCanBeEmpty()
     {
-        $this->assertInstanceOf('Symfony\Component\Form\FormInterface', $this->factory->create(static::TESTED_TYPE, null, array()));
+        $this->assertInstanceOf('Symfony\Component\Form\FormInterface', $this->factory->create(static::TESTED_TYPE, null, array(
+            'choices_as_values' => true,
+        )));
     }
 
     public function testExpandedChoicesOptionsTurnIntoChildren()
@@ -110,6 +145,20 @@ class ChoiceTypeTest extends BaseTypeTest
         $form = $this->factory->create(static::TESTED_TYPE, null, array(
             'expanded' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
+        ));
+
+        $this->assertCount(count($this->choices), $form, 'Each choice should become a new field');
+    }
+
+    /**
+     * @group legacy
+     */
+    public function testExpandedFlippedChoicesOptionsTurnIntoChildren()
+    {
+        $form = $this->factory->create(static::TESTED_TYPE, null, array(
+            'expanded' => true,
+            'choices' => array_flip($this->choices),
         ));
 
         $this->assertCount(count($this->choices), $form, 'Each choice should become a new field');
@@ -119,6 +168,7 @@ class ChoiceTypeTest extends BaseTypeTest
     {
         $view = $this->factory->create(static::TESTED_TYPE, null, array(
             'choices' => $this->scalarChoices,
+            'choices_as_values' => true,
         ))->createView();
 
         $this->assertSame('1', $view->vars['choices'][0]->value);
@@ -133,6 +183,7 @@ class ChoiceTypeTest extends BaseTypeTest
     {
         $view = $this->factory->create(static::TESTED_TYPE, false, array(
             'choices' => $this->scalarChoices,
+            'choices_as_values' => true,
         ))->createView();
 
         $this->assertTrue($view->vars['is_selected']($view->vars['choices'][1]->value, $view->vars['value']), 'False value should be pre selected');
@@ -142,6 +193,7 @@ class ChoiceTypeTest extends BaseTypeTest
     {
         $view = $this->factory->create(static::TESTED_TYPE, null, array(
             'choices' => $this->scalarChoices,
+            'choices_as_values' => true,
             'expanded' => true,
         ))->createView();
 
@@ -154,6 +206,7 @@ class ChoiceTypeTest extends BaseTypeTest
     {
         $view = $this->factory->create(static::TESTED_TYPE, null, array(
             'choices' => $this->booleanChoicesWithNull,
+            'choices_as_values' => true,
             'expanded' => true,
         ))->createView();
 
@@ -166,6 +219,7 @@ class ChoiceTypeTest extends BaseTypeTest
     {
         $view = $this->factory->create(static::TESTED_TYPE, false, array(
             'choices' => $this->scalarChoices,
+            'choices_as_values' => true,
             'expanded' => true,
         ))->createView();
 
@@ -179,6 +233,7 @@ class ChoiceTypeTest extends BaseTypeTest
     {
         $view = $this->factory->create(static::TESTED_TYPE, false, array(
             'choices' => $this->booleanChoicesWithNull,
+            'choices_as_values' => true,
             'expanded' => true,
         ))->createView();
 
@@ -194,6 +249,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $this->assertArrayHasKey('placeholder', $form);
@@ -207,6 +263,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $this->assertArrayNotHasKey('placeholder', $form);
@@ -220,6 +277,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $this->assertArrayNotHasKey('placeholder', $form);
@@ -236,6 +294,7 @@ class ChoiceTypeTest extends BaseTypeTest
                 'Empty' => '',
                 'Not empty' => 1,
             ),
+            'choices_as_values' => true,
         ));
 
         $this->assertArrayNotHasKey('placeholder', $form);
@@ -253,6 +312,7 @@ class ChoiceTypeTest extends BaseTypeTest
                 'No' => false,
             ),
             'placeholder' => 'Select an option',
+            'choices_as_values' => true,
         ))
             ->createView();
 
@@ -273,6 +333,7 @@ class ChoiceTypeTest extends BaseTypeTest
                 'No' => false,
             ),
             'placeholder' => 'Select an option',
+            'choices_as_values' => true,
         ))
             ->createView();
 
@@ -293,6 +354,7 @@ class ChoiceTypeTest extends BaseTypeTest
                 'No' => false,
             ),
             'placeholder' => 'Select an option',
+            'choices_as_values' => true,
         ));
 
         $this->assertArrayHasKey('placeholder', $form, 'Placeholder should be set');
@@ -317,6 +379,7 @@ class ChoiceTypeTest extends BaseTypeTest
                 'No' => false,
             ),
             'placeholder' => 'Select an option',
+            'choices_as_values' => true,
         ));
 
         $this->assertArrayHasKey('placeholder', $form, 'Placeholder should be set');
@@ -335,6 +398,29 @@ class ChoiceTypeTest extends BaseTypeTest
         $form = $this->factory->create(static::TESTED_TYPE, null, array(
             'expanded' => true,
             'choices' => $this->groupedChoices,
+            'choices_as_values' => true,
+        ));
+
+        $flattened = array();
+        foreach ($this->groupedChoices as $choices) {
+            $flattened = array_merge($flattened, array_keys($choices));
+        }
+
+        $this->assertCount($form->count(), $flattened, 'Each nested choice should become a new field, not the groups');
+
+        foreach ($flattened as $value => $choice) {
+            $this->assertTrue($form->has($value), 'Flattened choice is named after it\'s value');
+        }
+    }
+
+    /**
+     * @group legacy
+     */
+    public function testExpandedChoicesFlippedOptionsAreFlattened()
+    {
+        $form = $this->factory->create(static::TESTED_TYPE, null, array(
+            'expanded' => true,
+            'choices' => $this->groupedChoicesFlipped,
         ));
 
         $flattened = array();
@@ -363,6 +449,7 @@ class ChoiceTypeTest extends BaseTypeTest
                 'Symfony' => array($obj1, $obj2, $obj3),
                 'Doctrine' => array($obj4, $obj5),
             ),
+            'choices_as_values' => true,
             'choice_name' => 'id',
         ));
 
@@ -381,6 +468,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         foreach ($form as $child) {
@@ -395,6 +483,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         foreach ($form as $child) {
@@ -409,6 +498,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         foreach ($form as $child) {
@@ -422,6 +512,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'expanded' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit('b');
@@ -437,6 +528,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'expanded' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit('foobar');
@@ -452,6 +544,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'expanded' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit(null);
@@ -470,6 +563,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'expanded' => false,
             'choices' => array(),
+            'choices_as_values' => true,
         ));
 
         $form->submit(null);
@@ -486,6 +580,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'expanded' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit('');
@@ -503,6 +598,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'choices' => array(
                 'Empty' => 'EMPTY_CHOICE',
             ),
+            'choices_as_values' => true,
             'choice_value' => function () {
                 return '';
             },
@@ -524,6 +620,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'expanded' => false,
             'choices' => array(),
+            'choices_as_values' => true,
         ));
 
         $form->submit('');
@@ -539,6 +636,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'expanded' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit(false);
@@ -557,6 +655,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'expanded' => false,
             'choices' => array(),
+            'choices_as_values' => true,
         ));
 
         $form->submit(false);
@@ -572,6 +671,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'expanded' => false,
             'choices' => $this->objectChoices,
+            'choices_as_values' => true,
             'choice_label' => 'name',
             'choice_value' => 'id',
         ));
@@ -590,6 +690,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'expanded' => false,
             'choices' => array('test'),
+            'choices_as_values' => true,
             'empty_data' => 'test',
         ));
 
@@ -604,6 +705,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => true,
             'expanded' => false,
             'choices' => array('test'),
+            'choices_as_values' => true,
             'empty_data' => array('test'),
         ));
 
@@ -618,6 +720,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'expanded' => true,
             'choices' => array('test'),
+            'choices_as_values' => true,
             'empty_data' => 'test',
         ));
 
@@ -632,6 +735,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => true,
             'expanded' => true,
             'choices' => array('test'),
+            'choices_as_values' => true,
             'empty_data' => array('test'),
         ));
 
@@ -640,12 +744,55 @@ class ChoiceTypeTest extends BaseTypeTest
         $this->assertSame(array('test'), $form->getData());
     }
 
+    /**
+     * @group legacy
+     */
+    public function testLegacyNullChoices()
+    {
+        $form = $this->factory->create(static::TESTED_TYPE, null, array(
+            'multiple' => false,
+            'expanded' => false,
+            'choices' => null,
+        ));
+        $this->assertNull($form->getConfig()->getOption('choices'));
+        $this->assertFalse($form->getConfig()->getOption('multiple'));
+        $this->assertFalse($form->getConfig()->getOption('expanded'));
+    }
+
+    /**
+     * @group legacy
+     */
+    public function testLegacySubmitSingleNonExpandedObjectChoices()
+    {
+        $form = $this->factory->create(static::TESTED_TYPE, null, array(
+            'multiple' => false,
+            'expanded' => false,
+            'choice_list' => new ObjectChoiceList(
+                $this->objectChoices,
+                // label path
+                'name',
+                array(),
+                null,
+                // value path
+                'id'
+            ),
+        ));
+
+        // "id" value of the second entry
+        $form->submit('2');
+
+        $this->assertEquals($this->objectChoices[1], $form->getData());
+        $this->assertEquals('2', $form->getViewData());
+        $this->assertTrue($form->isSynchronized());
+    }
+
     public function testSubmitMultipleNonExpanded()
     {
         $form = $this->factory->create(static::TESTED_TYPE, null, array(
             'multiple' => true,
             'expanded' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit(array('a', 'b'));
@@ -661,6 +808,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => true,
             'expanded' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit(array());
@@ -679,6 +827,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => true,
             'expanded' => false,
             'choices' => array(),
+            'choices_as_values' => true,
         ));
 
         $form->submit(array());
@@ -694,6 +843,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => true,
             'expanded' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit('foobar');
@@ -709,6 +859,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => true,
             'expanded' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit(array('a', 'foobar'));
@@ -724,8 +875,35 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => true,
             'expanded' => false,
             'choices' => $this->objectChoices,
+            'choices_as_values' => true,
             'choice_label' => 'name',
             'choice_value' => 'id',
+        ));
+
+        $form->submit(array('2', '3'));
+
+        $this->assertEquals(array($this->objectChoices[1], $this->objectChoices[2]), $form->getData());
+        $this->assertEquals(array('2', '3'), $form->getViewData());
+        $this->assertTrue($form->isSynchronized());
+    }
+
+    /**
+     * @group legacy
+     */
+    public function testLegacySubmitMultipleNonExpandedObjectChoices()
+    {
+        $form = $this->factory->create(static::TESTED_TYPE, null, array(
+            'multiple' => true,
+            'expanded' => false,
+            'choice_list' => new ObjectChoiceList(
+                $this->objectChoices,
+                // label path
+                'name',
+                array(),
+                null,
+                // value path
+                'id'
+            ),
         ));
 
         $form->submit(array('2', '3'));
@@ -742,6 +920,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit('b');
@@ -770,6 +949,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit('foobar');
@@ -798,6 +978,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit('b');
@@ -828,6 +1009,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit('foobar');
@@ -856,6 +1038,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit(null);
@@ -887,6 +1070,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => true,
             'choices' => array(),
+            'choices_as_values' => true,
         ));
 
         $form->submit(null);
@@ -904,6 +1088,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit('');
@@ -935,6 +1120,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => true,
             'choices' => array(),
+            'choices_as_values' => true,
         ));
 
         $form->submit('');
@@ -952,6 +1138,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit(false);
@@ -983,6 +1170,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => true,
             'choices' => array(),
+            'choices_as_values' => true,
         ));
 
         $form->submit(false);
@@ -1000,6 +1188,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit(null);
@@ -1033,6 +1222,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => false,
             'choices' => array(),
+            'choices_as_values' => true,
         ));
 
         $form->submit(null);
@@ -1050,6 +1240,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit('');
@@ -1083,6 +1274,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => false,
             'choices' => array(),
+            'choices_as_values' => true,
         ));
 
         $form->submit('');
@@ -1100,6 +1292,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit(false);
@@ -1133,6 +1326,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'expanded' => true,
             'required' => false,
             'choices' => array(),
+            'choices_as_values' => true,
         ));
 
         $form->submit(false);
@@ -1152,6 +1346,7 @@ class ChoiceTypeTest extends BaseTypeTest
                 'Empty' => '',
                 'Not empty' => 1,
             ),
+            'choices_as_values' => true,
         ));
 
         $form->submit('');
@@ -1171,6 +1366,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'expanded' => true,
             'choices' => $this->objectChoices,
+            'choices_as_values' => true,
             'choice_label' => 'name',
             'choice_value' => 'id',
         ));
@@ -1192,12 +1388,77 @@ class ChoiceTypeTest extends BaseTypeTest
         $this->assertNull($form[4]->getViewData());
     }
 
+    /**
+     * @group legacy
+     */
+    public function testLegacySubmitSingleExpandedObjectChoices()
+    {
+        $form = $this->factory->create(static::TESTED_TYPE, null, array(
+            'multiple' => false,
+            'expanded' => true,
+            'choice_list' => new ObjectChoiceList(
+                $this->objectChoices,
+                // label path
+                'name',
+                array(),
+                null,
+                // value path
+                'id'
+            ),
+        ));
+
+        $form->submit('2');
+
+        $this->assertSame($this->objectChoices[1], $form->getData());
+        $this->assertTrue($form->isSynchronized());
+
+        $this->assertFalse($form[0]->getData());
+        $this->assertTrue($form[1]->getData());
+        $this->assertFalse($form[2]->getData());
+        $this->assertFalse($form[3]->getData());
+        $this->assertFalse($form[4]->getData());
+        $this->assertNull($form[0]->getViewData());
+        $this->assertSame('2', $form[1]->getViewData());
+        $this->assertNull($form[2]->getViewData());
+        $this->assertNull($form[3]->getViewData());
+        $this->assertNull($form[4]->getViewData());
+    }
+
+    /**
+     * @group legacy
+     */
+    public function testSubmitSingleExpandedNumericChoicesFlipped()
+    {
+        $form = $this->factory->create(static::TESTED_TYPE, null, array(
+            'multiple' => false,
+            'expanded' => true,
+            'choices' => $this->numericChoicesFlipped,
+        ));
+
+        $form->submit('1');
+
+        $this->assertSame(1, $form->getData());
+        $this->assertTrue($form->isSynchronized());
+
+        $this->assertFalse($form[0]->getData());
+        $this->assertTrue($form[1]->getData());
+        $this->assertFalse($form[2]->getData());
+        $this->assertFalse($form[3]->getData());
+        $this->assertFalse($form[4]->getData());
+        $this->assertNull($form[0]->getViewData());
+        $this->assertSame('1', $form[1]->getViewData());
+        $this->assertNull($form[2]->getViewData());
+        $this->assertNull($form[3]->getViewData());
+        $this->assertNull($form[4]->getViewData());
+    }
+
     public function testSubmitMultipleExpanded()
     {
         $form = $this->factory->create(static::TESTED_TYPE, null, array(
             'multiple' => true,
             'expanded' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit(array('a', 'c'));
@@ -1225,6 +1486,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => true,
             'expanded' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit('foobar');
@@ -1252,6 +1514,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => true,
             'expanded' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit(array('a', 'foobar'));
@@ -1279,6 +1542,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => true,
             'expanded' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ));
 
         $form->submit(array());
@@ -1307,6 +1571,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => true,
             'expanded' => true,
             'choices' => array(),
+            'choices_as_values' => true,
         ));
 
         $form->submit(array());
@@ -1325,6 +1590,7 @@ class ChoiceTypeTest extends BaseTypeTest
                 'Not Empty' => 1,
                 'Not Empty 2' => 2,
             ),
+            'choices_as_values' => true,
         ));
 
         $form->submit(array('', '2'));
@@ -1346,6 +1612,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => true,
             'expanded' => true,
             'choices' => $this->objectChoices,
+            'choices_as_values' => true,
             'choice_label' => 'name',
             'choice_value' => 'id',
         ));
@@ -1367,11 +1634,76 @@ class ChoiceTypeTest extends BaseTypeTest
         $this->assertNull($form[4]->getViewData());
     }
 
+    /**
+     * @group legacy
+     */
+    public function testLegacySubmitMultipleExpandedObjectChoices()
+    {
+        $form = $this->factory->create(static::TESTED_TYPE, null, array(
+            'multiple' => true,
+            'expanded' => true,
+            'choice_list' => new ObjectChoiceList(
+                $this->objectChoices,
+                // label path
+                'name',
+                array(),
+                null,
+                // value path
+                'id'
+            ),
+        ));
+
+        $form->submit(array('1', '2'));
+
+        $this->assertSame(array($this->objectChoices[0], $this->objectChoices[1]), $form->getData());
+        $this->assertTrue($form->isSynchronized());
+
+        $this->assertTrue($form[0]->getData());
+        $this->assertTrue($form[1]->getData());
+        $this->assertFalse($form[2]->getData());
+        $this->assertFalse($form[3]->getData());
+        $this->assertFalse($form[4]->getData());
+        $this->assertSame('1', $form[0]->getViewData());
+        $this->assertSame('2', $form[1]->getViewData());
+        $this->assertNull($form[2]->getViewData());
+        $this->assertNull($form[3]->getViewData());
+        $this->assertNull($form[4]->getViewData());
+    }
+
+    /**
+     * @group legacy
+     */
+    public function testSubmitMultipleExpandedNumericChoices()
+    {
+        $form = $this->factory->create(static::TESTED_TYPE, null, array(
+            'multiple' => true,
+            'expanded' => true,
+            'choices' => $this->numericChoicesFlipped,
+        ));
+
+        $form->submit(array('1', '2'));
+
+        $this->assertSame(array(1, 2), $form->getData());
+        $this->assertTrue($form->isSynchronized());
+
+        $this->assertFalse($form[0]->getData());
+        $this->assertTrue($form[1]->getData());
+        $this->assertTrue($form[2]->getData());
+        $this->assertFalse($form[3]->getData());
+        $this->assertFalse($form[4]->getData());
+        $this->assertNull($form[0]->getViewData());
+        $this->assertSame('1', $form[1]->getViewData());
+        $this->assertSame('2', $form[2]->getViewData());
+        $this->assertNull($form[3]->getViewData());
+        $this->assertNull($form[4]->getViewData());
+    }
+
     public function testSubmitMultipleChoicesInts()
     {
         $form = $this->factory->create(static::TESTED_TYPE, null, array(
             'multiple' => true,
             'choices' => array_flip($this->numericChoicesFlipped),
+            'choices_as_values' => true,
         ));
 
         $form->submit(array(1, 2));
@@ -1385,6 +1717,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'expanded' => false,
             'choices' => $this->objectChoices,
+            'choices_as_values' => true,
             'choice_label' => 'name',
             'choice_value' => 'id',
         ))
@@ -1403,6 +1736,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => true,
             'expanded' => false,
             'choices' => $this->objectChoices,
+            'choices_as_values' => true,
             'choice_label' => 'name',
             'choice_value' => 'id',
         ))
@@ -1415,10 +1749,50 @@ class ChoiceTypeTest extends BaseTypeTest
         $this->assertFalse($selectedChecker($view->vars['choices'][1]->value, $view->vars['value']));
     }
 
+    /**
+     * We need this functionality to create choice fields for Boolean types,
+     * e.g. false => 'No', true => 'Yes'.
+     *
+     * @group legacy
+     */
+    public function testSetDataSingleNonExpandedAcceptsBoolean()
+    {
+        $form = $this->factory->create(static::TESTED_TYPE, null, array(
+            'multiple' => false,
+            'expanded' => false,
+            'choices' => $this->numericChoicesFlipped,
+        ));
+
+        $form->setData(false);
+
+        $this->assertFalse($form->getData());
+        $this->assertEquals('0', $form->getViewData());
+        $this->assertTrue($form->isSynchronized());
+    }
+
+    /**
+     * @group legacy
+     */
+    public function testSetDataMultipleNonExpandedAcceptsBoolean()
+    {
+        $form = $this->factory->create(static::TESTED_TYPE, null, array(
+            'multiple' => true,
+            'expanded' => false,
+            'choices' => $this->numericChoicesFlipped,
+        ));
+
+        $form->setData(array(false, true));
+
+        $this->assertEquals(array(false, true), $form->getData());
+        $this->assertEquals(array('0', '1'), $form->getViewData());
+        $this->assertTrue($form->isSynchronized());
+    }
+
     public function testPassRequiredToView()
     {
         $view = $this->factory->create(static::TESTED_TYPE, null, array(
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ))
             ->createView();
 
@@ -1430,6 +1804,7 @@ class ChoiceTypeTest extends BaseTypeTest
         $view = $this->factory->create(static::TESTED_TYPE, null, array(
             'required' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ))
             ->createView();
 
@@ -1441,6 +1816,7 @@ class ChoiceTypeTest extends BaseTypeTest
         $view = $this->factory->create(static::TESTED_TYPE, null, array(
             'multiple' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ))
             ->createView();
 
@@ -1452,6 +1828,7 @@ class ChoiceTypeTest extends BaseTypeTest
         $view = $this->factory->create(static::TESTED_TYPE, null, array(
             'expanded' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ))
             ->createView();
 
@@ -1462,6 +1839,7 @@ class ChoiceTypeTest extends BaseTypeTest
     {
         $view = $this->factory->create(static::TESTED_TYPE, null, array(
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ))
             ->createView();
 
@@ -1472,6 +1850,7 @@ class ChoiceTypeTest extends BaseTypeTest
     {
         $view = $this->factory->create(static::TESTED_TYPE, null, array(
             'choices' => $this->choices,
+            'choices_as_values' => true,
             'choice_translation_domain' => true,
         ))
             ->createView();
@@ -1483,6 +1862,7 @@ class ChoiceTypeTest extends BaseTypeTest
     {
         $view = $this->factory->create(static::TESTED_TYPE, null, array(
             'choices' => $this->choices,
+            'choices_as_values' => true,
             'translation_domain' => 'foo',
         ))
             ->createView();
@@ -1496,7 +1876,9 @@ class ChoiceTypeTest extends BaseTypeTest
             ->createNamedBuilder('parent', FormTypeTest::TESTED_TYPE, null, array(
                 'translation_domain' => 'domain',
             ))
-            ->add('child', static::TESTED_TYPE)
+            ->add('child', static::TESTED_TYPE, array(
+                'choices_as_values' => true,
+            ))
             ->getForm()
             ->createView();
 
@@ -1509,6 +1891,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'required' => true,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ))
             ->createView();
 
@@ -1521,6 +1904,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple' => false,
             'required' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ))
             ->createView();
 
@@ -1538,11 +1922,34 @@ class ChoiceTypeTest extends BaseTypeTest
             'required' => $required,
             'placeholder' => $placeholder,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ))
             ->createView();
 
         $this->assertSame($viewValue, $view->vars['placeholder']);
         $this->assertFalse($view->vars['placeholder_in_choices']);
+    }
+
+    /**
+     * @dataProvider getOptionsWithPlaceholder
+     * @group legacy
+     */
+    public function testPassEmptyValueBC($multiple, $expanded, $required, $placeholder, $viewValue)
+    {
+        $view = $this->factory->create(static::TESTED_TYPE, null, array(
+            'multiple' => $multiple,
+            'expanded' => $expanded,
+            'required' => $required,
+            'empty_value' => $placeholder,
+            'choices' => $this->choices,
+            'choices_as_values' => true,
+        ))
+            ->createView();
+
+        $this->assertSame($viewValue, $view->vars['placeholder']);
+        $this->assertFalse($view->vars['placeholder_in_choices']);
+        $this->assertSame($viewValue, $view->vars['empty_value']);
+        $this->assertFalse($view->vars['empty_value_in_choices']);
     }
 
     /**
@@ -1556,6 +1963,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'required' => $required,
             'placeholder' => $placeholder,
             'choices' => array('Empty' => '', 'A' => 'a'),
+            'choices_as_values' => true,
         ))
             ->createView();
 
@@ -1607,11 +2015,137 @@ class ChoiceTypeTest extends BaseTypeTest
         );
     }
 
+    /**
+     * @dataProvider getOptionsWithPlaceholderAndEmptyValue
+     * @group legacy
+     */
+    public function testPlaceholderOptionWithEmptyValueOption($multiple, $expanded, $required, $placeholder, $emptyValue, $viewValue)
+    {
+        $view = $this->factory->create(static::TESTED_TYPE, null, array(
+            'multiple' => $multiple,
+            'expanded' => $expanded,
+            'required' => $required,
+            'placeholder' => $placeholder,
+            'empty_value' => $emptyValue,
+            'choices' => $this->choices,
+        ))
+            ->createView();
+
+        $this->assertSame($viewValue, $view->vars['placeholder']);
+        $this->assertFalse($view->vars['placeholder_in_choices']);
+    }
+
+    public function getOptionsWithPlaceholderAndEmptyValue()
+    {
+        return array(
+            // single non-expanded, not required
+            'A placeholder is not used if it is explicitly set to false' => array(false, false, false, false, false, null),
+            'A placeholder is not used if it is explicitly set to false with null as empty value' => array(false, false, false, false, null, null),
+            'A placeholder is not used if it is explicitly set to false with empty string as empty value' => array(false, false, false, false, '', null),
+            'A placeholder is not used if it is explicitly set to false with "bar" as empty value' => array(false, false, false, false, 'bar', null),
+            'A placeholder is not used if empty_value is set to false [maintains BC]' => array(false, false, false, null, false, null),
+            'An unset empty_value is automatically made an empty string in a non-required field (but null is expected here) [maintains BC]' => array(false, false, false, null, null, null),
+            'An empty string empty_value is used if placeholder is not set [maintains BC]' => array(false, false, false, null, '', ''),
+            'A non-empty string empty_value is used if placeholder is not set [maintains BC]' => array(false, false, false, null, 'bar', 'bar'),
+            'A placeholder is not used if it is an empty string and empty_value is set to false [maintains BC]' => array(false, false, false, '', false, null),
+            'An unset empty_value is automatically made an empty string in a non-required field (but null is expected here) when placeholder is an empty string [maintains BC]' => array(false, false, false, '', null, null),
+            'An empty string empty_value is used if placeholder is also an empty string [maintains BC]' => array(false, false, false, '', '', ''),
+            'A non-empty string empty_value is used if placeholder is an empty string [maintains BC]' => array(false, false, false, '', 'bar', 'bar'),
+            'A non-empty string placeholder takes precedence over an empty_value set to false' => array(false, false, false, 'foo', false, 'foo'),
+            'A non-empty string placeholder takes precedence over a not set empty_value' => array(false, false, false, 'foo', null, 'foo'),
+            'A non-empty string placeholder takes precedence over an empty string empty_value' => array(false, false, false, 'foo', '', 'foo'),
+            'A non-empty string placeholder takes precedence over a non-empty string empty_value' => array(false, false, false, 'foo', 'bar', 'foo'),
+            // single non-expanded, required
+            'A placeholder is not used if it is explicitly set to false when required' => array(false, false, true, false, false, null),
+            'A placeholder is not used if it is explicitly set to false with null as empty value when required' => array(false, false, true, false, null, null),
+            'A placeholder is not used if it is explicitly set to false with empty string as empty value when required' => array(false, false, true, false, '', null),
+            'A placeholder is not used if it is explicitly set to false with "bar" as empty value when required' => array(false, false, true, false, 'bar', null),
+            'A placeholder is not used if empty_value is set to false when required [maintains BC]' => array(false, false, true, null, false, null),
+            'A placeholder is not used if empty_value is not set when required [maintains BC]' => array(false, false, true, null, null, null),
+            'An empty string empty_value is used if placeholder is not set when required [maintains BC]' => array(false, false, true, null, '', ''),
+            'A non-empty string empty_value is used if placeholder is not set when required [maintains BC]' => array(false, false, true, null, 'bar', 'bar'),
+            'A placeholder is not used if it is an empty string and empty_value is set to false when required [maintains BC]' => array(false, false, true, '', false, null),
+            'A placeholder is not used if empty_value is not set [maintains BC]' => array(false, false, true, '', null, null),
+            'An empty string empty_value is used if placeholder is also an empty string when required [maintains BC]' => array(false, false, true, '', '', ''),
+            'A non-empty string empty_value is used if placeholder is an empty string when required [maintains BC]' => array(false, false, true, '', 'bar', 'bar'),
+            'A non-empty string placeholder takes precedence over an empty_value set to false when required' => array(false, false, true, 'foo', false, 'foo'),
+            'A non-empty string placeholder takes precedence over a not set empty_value when required' => array(false, false, true, 'foo', null, 'foo'),
+            'A non-empty string placeholder takes precedence over an empty string empty_value when required' => array(false, false, true, 'foo', '', 'foo'),
+            'A non-empty string placeholder takes precedence over a non-empty string empty_value when required' => array(false, false, true, 'foo', 'bar', 'foo'),
+            // single expanded, not required
+            'A placeholder is not used if it is explicitly set to false when expanded' => array(false, true, false, false, false, null),
+            'A placeholder is not used if it is explicitly set to false with null as empty value when expanded' => array(false, true, false, false, null, null),
+            'A placeholder is not used if it is explicitly set to false with empty string as empty value when expanded' => array(false, true, false, false, '', null),
+            'A placeholder is not used if it is explicitly set to false with "bar" as empty value when expanded' => array(false, true, false, false, 'bar', null),
+            'A placeholder is not used if empty_value is set to false when expanded [maintains BC]' => array(false, true, false, null, false, null),
+            'An unset empty_value is automatically made an empty string in a non-required field when expanded (but null is expected here) [maintains BC]' => array(false, true, false, null, null, null),
+            'An empty string empty_value is converted to "None" in an expanded single choice field [maintains BC]' => array(false, true, false, null, '', 'None'),
+            'A non-empty string empty_value is used if placeholder is not set when expanded [maintains BC]' => array(false, true, false, null, 'bar', 'bar'),
+            'A placeholder is not used if it is an empty string and empty_value is set to false when expanded [maintains BC]' => array(false, true, false, '', false, null),
+            'An unset empty_value is automatically made an empty string in a non-required field (but null is expected here) when expanded [maintains BC]' => array(false, true, false, '', null, null),
+            'An empty string empty_value is converted to "None" in an expanded single choice field when placeholder is an empty string [maintains BC]' => array(false, true, false, '', '', 'None'),
+            'A non-empty string empty_value is used if placeholder is an empty string when expanded [maintains BC]' => array(false, true, false, '', 'bar', 'bar'),
+            'A non-empty string placeholder takes precedence over an empty_value set to false when expanded' => array(false, true, false, 'foo', false, 'foo'),
+            'A non-empty string placeholder takes precedence over a not set empty_value when expanded' => array(false, true, false, 'foo', null, 'foo'),
+            'A non-empty string placeholder takes precedence over an empty string empty_value when expanded' => array(false, true, false, 'foo', '', 'foo'),
+            'A non-empty string placeholder takes precedence over a non-empty string empty_value when expanded' => array(false, true, false, 'foo', 'bar', 'foo'),
+            // single expanded, required
+            'A placeholder is not used if it is explicitly set to false when expanded and required' => array(false, true, true, false, false, null),
+            'A placeholder is not used if it is explicitly set to false with null as empty value when expanded and required' => array(false, true, true, false, null, null),
+            'A placeholder is not used if it is explicitly set to false with empty string as empty value when expanded and required' => array(false, true, true, false, '', null),
+            'A placeholder is not used if it is explicitly set to false with "bar" as empty value when expanded and required' => array(false, true, true, false, 'bar', null),
+            'A placeholder is not used if empty_value is set to false when expanded and required [maintains BC]' => array(false, true, true, null, false, null),
+            'A placeholder is not used if empty_value is not set when expanded and required [maintains BC]' => array(false, true, true, null, null, null),
+            'An empty string empty_value is not used in an expanded single choice field when expanded and required [maintains BC]' => array(false, true, true, null, '', null),
+            'A non-empty string empty_value is not used if placeholder is not set when expanded and required [maintains BC]' => array(false, true, true, null, 'bar', null),
+            'A placeholder is not used if it is an empty string and empty_value is set to false when expanded and required [maintains BC]' => array(false, true, true, '', false, null),
+            'A placeholder is not used as empty string if empty_value is not set when expanded and required [maintains BC]' => array(false, true, true, '', null, null),
+            'An empty string empty_value is ignored in an expanded single choice field when required [maintains BC]' => array(false, true, true, 'foo', '', null),
+            'A non-empty string empty_value is ignored when expanded and required [maintains BC]' => array(false, true, true, '', 'bar', null),
+            'A non-empty string placeholder is ignored when expanded and required' => array(false, true, true, 'foo', '', null),
+            // multiple expanded, not required
+            array(true, true, false, false, false, null),
+            array(true, true, false, false, null, null),
+            array(true, true, false, false, '', null),
+            array(true, true, false, false, 'bar', null),
+            array(true, true, false, null, false, null),
+            array(true, true, false, null, null, null),
+            array(true, true, false, null, '', null),
+            array(true, true, false, null, 'bar', null),
+            array(true, true, false, '', false, null),
+            array(true, true, false, '', null, null),
+            array(true, true, false, '', '', null),
+            array(true, true, false, '', 'bar', null),
+            array(true, true, false, 'foo', false, null),
+            array(true, true, false, 'foo', null, null),
+            array(true, true, false, 'foo', '', null),
+            array(true, true, false, 'foo', 'bar', null),
+            // multiple expanded, required
+            array(true, true, true, false, false, null),
+            array(true, true, true, false, null, null),
+            array(true, true, true, false, '', null),
+            array(true, true, true, false, 'bar', null),
+            array(true, true, true, null, false, null),
+            array(true, true, true, null, null, null),
+            array(true, true, true, null, '', null),
+            array(true, true, true, null, 'bar', null),
+            array(true, true, true, '', false, null),
+            array(true, true, true, '', null, null),
+            array(true, true, true, '', '', null),
+            array(true, true, true, '', 'bar', null),
+            array(true, true, true, 'foo', false, null),
+            array(true, true, true, 'foo', null, null),
+            array(true, true, true, 'foo', '', null),
+            array(true, true, true, 'foo', 'bar', null),
+        );
+    }
+
     public function testPassChoicesToView()
     {
         $choices = array('A' => 'a', 'B' => 'b', 'C' => 'c', 'D' => 'd');
         $view = $this->factory->create(static::TESTED_TYPE, null, array(
             'choices' => $choices,
+            'choices_as_values' => true,
         ))
             ->createView();
 
@@ -1628,6 +2162,7 @@ class ChoiceTypeTest extends BaseTypeTest
         $choices = array('A' => 'a', 'B' => 'b', 'C' => 'c', 'D' => 'd');
         $view = $this->factory->create(static::TESTED_TYPE, null, array(
             'choices' => $choices,
+            'choices_as_values' => true,
             'preferred_choices' => array('b', 'd'),
         ))
             ->createView();
@@ -1646,6 +2181,7 @@ class ChoiceTypeTest extends BaseTypeTest
     {
         $view = $this->factory->create(static::TESTED_TYPE, null, array(
             'choices' => $this->groupedChoices,
+            'choices_as_values' => true,
             'preferred_choices' => array('b', 'd'),
         ))
             ->createView();
@@ -1677,6 +2213,7 @@ class ChoiceTypeTest extends BaseTypeTest
         $obj4 = (object) array('value' => 'd', 'label' => 'D');
         $view = $this->factory->create(static::TESTED_TYPE, null, array(
             'choices' => array($obj1, $obj2, $obj3, $obj4),
+            'choices_as_values' => true,
             'choice_label' => 'label',
             'choice_value' => 'value',
         ))
@@ -1690,12 +2227,30 @@ class ChoiceTypeTest extends BaseTypeTest
         ), $view->vars['choices']);
     }
 
+    /**
+     * @group legacy
+     */
+    public function testDuplicateChoiceLabels()
+    {
+        $view = $this->factory->create(static::TESTED_TYPE, null, array(
+            'choices' => array('a' => 'A', 'b' => 'B', 'c' => 'A'),
+        ))
+            ->createView();
+
+        $this->assertEquals(array(
+            new ChoiceView('a', 'a', 'A'),
+            new ChoiceView('b', 'b', 'B'),
+            new ChoiceView('c', 'c', 'A'),
+        ), $view->vars['choices']);
+    }
+
     public function testAdjustFullNameForMultipleNonExpanded()
     {
         $view = $this->factory->createNamed('name', static::TESTED_TYPE, null, array(
             'multiple' => true,
             'expanded' => false,
             'choices' => $this->choices,
+            'choices_as_values' => true,
         ))
             ->createView();
 
@@ -1707,6 +2262,7 @@ class ChoiceTypeTest extends BaseTypeTest
     {
         $this->assertInstanceOf('Symfony\Component\Form\FormInterface', $this->factory->createNamed('name', static::TESTED_TYPE, null, array(
             'choices' => array(),
+            'choices_as_values' => true,
         )));
     }
 
@@ -1719,6 +2275,7 @@ class ChoiceTypeTest extends BaseTypeTest
 
         $form = $this->factory->create(static::TESTED_TYPE, null, array(
             'choices' => array($obj1, $obj2, $obj3, $obj4),
+            'choices_as_values' => true,
             'choice_label' => 'label',
             'choice_value' => 'value',
             // Used to break because "data_class" was inferred, which needs to
@@ -1745,6 +2302,7 @@ class ChoiceTypeTest extends BaseTypeTest
                     '1' => '1',
                     '2' => '2',
                 ),
+                'choices_as_values' => true,
             )
         );
         $builder->add('subChoice', 'Symfony\Component\Form\Tests\Fixtures\ChoiceSubType');
@@ -1765,6 +2323,7 @@ class ChoiceTypeTest extends BaseTypeTest
             'choices' => $this->choices,
             'multiple' => $multiple,
             'expanded' => $expanded,
+            'choices_as_values' => true,
         ));
 
         $form->submit($submissionData);
@@ -1780,5 +2339,142 @@ class ChoiceTypeTest extends BaseTypeTest
             'multiple, non-expanded' => array(true, false, array(array())),
             'multiple, expanded' => array(true, true, array(array())),
         );
+    }
+
+    public function testInheritTranslationDomainFromParent()
+    {
+        $view = $this->factory
+            ->createNamedBuilder('parent', FormTypeTest::TESTED_TYPE, null, array(
+                'translation_domain' => 'domain',
+            ))
+            ->add('child', static::TESTED_TYPE, array(
+                'choices_as_values' => true,
+            ))
+            ->getForm()
+            ->createView();
+
+        $this->assertEquals('domain', $view['child']->vars['translation_domain']);
+    }
+
+    public function testPassTranslationDomainToView()
+    {
+        $view = $this->factory->create(static::TESTED_TYPE, null, array(
+            'choices_as_values' => true,
+            'translation_domain' => 'domain',
+        ))
+            ->createView();
+
+        $this->assertSame('domain', $view->vars['translation_domain']);
+    }
+
+    public function testPreferOwnTranslationDomain()
+    {
+        $view = $this->factory
+            ->createNamedBuilder('parent', FormTypeTest::TESTED_TYPE, null, array(
+                'translation_domain' => 'parent_domain',
+            ))
+            ->add('child', static::TESTED_TYPE, array(
+                'choices_as_values' => true,
+                'translation_domain' => 'domain',
+            ))
+            ->getForm()
+            ->createView();
+
+        $this->assertEquals('domain', $view['child']->vars['translation_domain']);
+    }
+
+    public function testDefaultTranslationDomain()
+    {
+        $view = $this->factory->createNamedBuilder('parent', FormTypeTest::TESTED_TYPE)
+            ->add('child', static::TESTED_TYPE, array(
+                'choices_as_values' => true,
+            ))
+            ->getForm()
+            ->createView();
+
+        $this->assertNull($view['child']->vars['translation_domain']);
+    }
+
+    public function testPassMultipartFalseToView()
+    {
+        $view = $this->factory->create(static::TESTED_TYPE, null, array(
+            'choices_as_values' => true,
+        ))
+            ->createView();
+
+        $this->assertFalse($view->vars['multipart']);
+    }
+
+    public function testPassLabelToView()
+    {
+        $view = $this->factory->createNamed('__test___field', static::TESTED_TYPE, null, array(
+            'label' => 'My label',
+            'choices_as_values' => true,
+        ))
+            ->createView();
+
+        $this->assertSame('My label', $view->vars['label']);
+    }
+
+    public function testPassIdAndNameToViewWithGrandParent()
+    {
+        $builder = $this->factory->createNamedBuilder('parent', FormTypeTest::TESTED_TYPE)
+            ->add('child', FormTypeTest::TESTED_TYPE);
+        $builder->get('child')->add('grand_child', static::TESTED_TYPE, array(
+            'choices_as_values' => true,
+        ));
+        $view = $builder->getForm()->createView();
+
+        $this->assertEquals('parent_child_grand_child', $view['child']['grand_child']->vars['id']);
+        $this->assertEquals('grand_child', $view['child']['grand_child']->vars['name']);
+        $this->assertEquals('parent[child][grand_child]', $view['child']['grand_child']->vars['full_name']);
+    }
+
+    public function testPassIdAndNameToViewWithParent()
+    {
+        $view = $this->factory->createNamedBuilder('parent', FormTypeTest::TESTED_TYPE)
+            ->add('child', static::TESTED_TYPE, array(
+                'choices_as_values' => true,
+            ))
+            ->getForm()
+            ->createView();
+
+        $this->assertEquals('parent_child', $view['child']->vars['id']);
+        $this->assertEquals('child', $view['child']->vars['name']);
+        $this->assertEquals('parent[child]', $view['child']->vars['full_name']);
+    }
+
+    public function testPassDisabledAsOption()
+    {
+        $form = $this->factory->create(static::TESTED_TYPE, null, array(
+            'disabled' => true,
+            'choices_as_values' => true,
+        ));
+
+        $this->assertTrue($form->isDisabled());
+    }
+
+    public function testPassIdAndNameToView()
+    {
+        $view = $this->factory->createNamed('name', static::TESTED_TYPE, null, array(
+            'choices_as_values' => true,
+        ))
+            ->createView();
+
+        $this->assertEquals('name', $view->vars['id']);
+        $this->assertEquals('name', $view->vars['name']);
+        $this->assertEquals('name', $view->vars['full_name']);
+    }
+
+    public function testStripLeadingUnderscoresAndDigitsFromId()
+    {
+        $view = $this->factory->createNamed('_09name', static::TESTED_TYPE, null, array(
+            'choices_as_values' => true,
+        ))
+            ->createView();
+
+        $this->assertEquals('name', $view->vars['id']);
+        $this->assertEquals('_09name', $view->vars['name']);
+        $this->assertEquals('_09name', $view->vars['full_name']);
     }
 }

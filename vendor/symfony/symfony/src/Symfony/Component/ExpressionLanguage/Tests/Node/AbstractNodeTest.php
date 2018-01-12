@@ -37,14 +37,4 @@ abstract class AbstractNodeTest extends TestCase
     }
 
     abstract public function getCompileData();
-
-    /**
-     * @dataProvider getDumpData
-     */
-    public function testDump($expected, $node)
-    {
-        $this->assertSame($expected, $node->dump());
-    }
-
-    abstract public function getDumpData();
 }

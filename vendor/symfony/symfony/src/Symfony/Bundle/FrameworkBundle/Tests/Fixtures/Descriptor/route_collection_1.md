@@ -34,4 +34,3 @@ route_2
     - `compiler_class`: Symfony\Component\Routing\RouteCompiler
     - `opt1`: val1
     - `opt2`: val2
-

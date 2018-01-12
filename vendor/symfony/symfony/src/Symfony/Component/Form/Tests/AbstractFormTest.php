@@ -35,6 +35,8 @@ abstract class AbstractFormTest extends TestCase
 
     protected function setUp()
     {
+        // We need an actual dispatcher to use the deprecated
+        // bindRequest() method
         $this->dispatcher = new EventDispatcher();
         $this->factory = $this->getMockBuilder('Symfony\Component\Form\FormFactoryInterface')->getMock();
         $this->form = $this->createForm();

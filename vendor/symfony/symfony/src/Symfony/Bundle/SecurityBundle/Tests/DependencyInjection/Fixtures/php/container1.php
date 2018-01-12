@@ -1,6 +1,7 @@
 <?php
 
 $container->loadFromExtension('security', array(
+    'acl' => array(),
     'encoders' => array(
         'JMS\FooBundle\Entity\User1' => 'plaintext',
         'JMS\FooBundle\Entity\User2' => array(
@@ -60,35 +61,30 @@ $container->loadFromExtension('security', array(
     ),
 
     'firewalls' => array(
-        'simple' => array('provider' => 'default', 'pattern' => '/login', 'security' => false),
+        'simple' => array('pattern' => '/login', 'security' => false),
         'secure' => array('stateless' => true,
-            'provider' => 'default',
             'http_basic' => true,
+            'http_digest' => array('secret' => 'TheSecret'),
             'form_login' => true,
             'anonymous' => true,
-            'switch_user' => array('stateless' => true),
+            'switch_user' => true,
             'x509' => true,
             'remote_user' => true,
             'logout' => true,
             'remember_me' => array('secret' => 'TheSecret'),
             'user_checker' => null,
-            'logout_on_user_change' => true,
         ),
         'host' => array(
-            'provider' => 'default',
             'pattern' => '/test',
             'host' => 'foo\\.example\\.org',
             'methods' => array('GET', 'POST'),
             'anonymous' => true,
             'http_basic' => true,
-            'logout_on_user_change' => true,
         ),
         'with_user_checker' => array(
-            'provider' => 'default',
             'user_checker' => 'app.user_checker',
             'anonymous' => true,
             'http_basic' => true,
-            'logout_on_user_change' => true,
         ),
     ),
 

@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\PropertyInfo\Extractor;
 
-use Symfony\Component\Inflector\Inflector;
 use Symfony\Component\PropertyInfo\PropertyAccessExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyListExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyTypeExtractorInterface;
@@ -21,57 +20,29 @@ use Symfony\Component\PropertyInfo\Type;
  * Extracts data using the reflection API.
  *
  * @author Kévin Dunglas <dunglas@gmail.com>
- *
- * @final since version 3.3
  */
 class ReflectionExtractor implements PropertyListExtractorInterface, PropertyTypeExtractorInterface, PropertyAccessExtractorInterface
 {
     /**
      * @internal
      */
-    public static $defaultMutatorPrefixes = array('add', 'remove', 'set');
+    public static $mutatorPrefixes = array('add', 'remove', 'set');
 
     /**
      * @internal
      */
-    public static $defaultAccessorPrefixes = array('is', 'can', 'get');
+    public static $accessorPrefixes = array('is', 'can', 'get');
 
     /**
      * @internal
      */
-    public static $defaultArrayMutatorPrefixes = array('add', 'remove');
+    public static $arrayMutatorPrefixes = array('add', 'remove');
 
-    /**
-     * @var bool
-     */
     private $supportsParameterType;
 
-    /**
-     * @var string[]
-     */
-    private $mutatorPrefixes;
-
-    /**
-     * @var string[]
-     */
-    private $accessorPrefixes;
-
-    /**
-     * @var string[]
-     */
-    private $arrayMutatorPrefixes;
-
-    /**
-     * @param string[]|null $mutatorPrefixes
-     * @param string[]|null $accessorPrefixes
-     * @param string[]|null $arrayMutatorPrefixes
-     */
-    public function __construct(array $mutatorPrefixes = null, array $accessorPrefixes = null, array $arrayMutatorPrefixes = null)
+    public function __construct()
     {
         $this->supportsParameterType = method_exists('ReflectionParameter', 'getType');
-        $this->mutatorPrefixes = null !== $mutatorPrefixes ? $mutatorPrefixes : self::$defaultMutatorPrefixes;
-        $this->accessorPrefixes = null !== $accessorPrefixes ? $accessorPrefixes : self::$defaultAccessorPrefixes;
-        $this->arrayMutatorPrefixes = null !== $arrayMutatorPrefixes ? $arrayMutatorPrefixes : self::$defaultArrayMutatorPrefixes;
     }
 
     /**
@@ -85,13 +56,9 @@ class ReflectionExtractor implements PropertyListExtractorInterface, PropertyTyp
             return;
         }
 
-        $reflectionProperties = $reflectionClass->getProperties();
-
         $properties = array();
-        foreach ($reflectionProperties as $reflectionProperty) {
-            if ($reflectionProperty->isPublic()) {
-                $properties[$reflectionProperty->name] = $reflectionProperty->name;
-            }
+        foreach ($reflectionClass->getProperties(\ReflectionProperty::IS_PUBLIC) as $reflectionProperty) {
+            $properties[$reflectionProperty->name] = $reflectionProperty->name;
         }
 
         foreach ($reflectionClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $reflectionMethod) {
@@ -99,7 +66,7 @@ class ReflectionExtractor implements PropertyListExtractorInterface, PropertyTyp
                 continue;
             }
 
-            $propertyName = $this->getPropertyName($reflectionMethod->name, $reflectionProperties);
+            $propertyName = $this->getPropertyName($reflectionMethod->name);
             if (!$propertyName || isset($properties[$propertyName])) {
                 continue;
             }
@@ -194,7 +161,7 @@ class ReflectionExtractor implements PropertyListExtractorInterface, PropertyTyp
             return;
         }
 
-        if (in_array($prefix, $this->arrayMutatorPrefixes)) {
+        if (in_array($prefix, self::$arrayMutatorPrefixes)) {
             $type = new Type(Type::BUILTIN_TYPE_ARRAY, false, null, true, new Type(Type::BUILTIN_TYPE_INT), $type);
         }
 
@@ -286,7 +253,7 @@ class ReflectionExtractor implements PropertyListExtractorInterface, PropertyTyp
     {
         $ucProperty = ucfirst($property);
 
-        foreach ($this->accessorPrefixes as $prefix) {
+        foreach (self::$accessorPrefixes as $prefix) {
             try {
                 $reflectionMethod = new \ReflectionMethod($class, $prefix.$ucProperty);
                 if ($reflectionMethod->isStatic()) {
@@ -316,28 +283,20 @@ class ReflectionExtractor implements PropertyListExtractorInterface, PropertyTyp
     private function getMutatorMethod($class, $property)
     {
         $ucProperty = ucfirst($property);
-        $ucSingulars = (array) Inflector::singularize($ucProperty);
 
-        foreach ($this->mutatorPrefixes as $prefix) {
-            $names = array($ucProperty);
-            if (in_array($prefix, $this->arrayMutatorPrefixes)) {
-                $names = array_merge($names, $ucSingulars);
-            }
-
-            foreach ($names as $name) {
-                try {
-                    $reflectionMethod = new \ReflectionMethod($class, $prefix.$name);
-                    if ($reflectionMethod->isStatic()) {
-                        continue;
-                    }
-
-                    // Parameter can be optional to allow things like: method(array $foo = null)
-                    if ($reflectionMethod->getNumberOfParameters() >= 1) {
-                        return array($reflectionMethod, $prefix);
-                    }
-                } catch (\ReflectionException $e) {
-                    // Try the next prefix if the method doesn't exist
+        foreach (self::$mutatorPrefixes as $prefix) {
+            try {
+                $reflectionMethod = new \ReflectionMethod($class, $prefix.$ucProperty);
+                if ($reflectionMethod->isStatic()) {
+                    continue;
                 }
+
+                // Parameter can be optional to allow things like: method(array $foo = null)
+                if ($reflectionMethod->getNumberOfParameters() >= 1) {
+                    return array($reflectionMethod, $prefix);
+                }
+            } catch (\ReflectionException $e) {
+                // Try the next prefix if the method doesn't exist
             }
         }
     }
@@ -345,28 +304,15 @@ class ReflectionExtractor implements PropertyListExtractorInterface, PropertyTyp
     /**
      * Extracts a property name from a method name.
      *
-     * @param string                $methodName
-     * @param \ReflectionProperty[] $reflectionProperties
+     * @param string $methodName
      *
      * @return string
      */
-    private function getPropertyName($methodName, array $reflectionProperties)
+    private function getPropertyName($methodName)
     {
-        $pattern = implode('|', array_merge($this->accessorPrefixes, $this->mutatorPrefixes));
+        $pattern = implode('|', array_merge(self::$accessorPrefixes, self::$mutatorPrefixes));
 
-        if ('' !== $pattern && preg_match('/^('.$pattern.')(.+)$/i', $methodName, $matches)) {
-            if (!in_array($matches[1], $this->arrayMutatorPrefixes)) {
-                return $matches[2];
-            }
-
-            foreach ($reflectionProperties as $reflectionProperty) {
-                foreach ((array) Inflector::singularize($reflectionProperty->name) as $name) {
-                    if (strtolower($name) === strtolower($matches[2])) {
-                        return $reflectionProperty->name;
-                    }
-                }
-            }
-
+        if (preg_match('/^('.$pattern.')(.+)$/i', $methodName, $matches)) {
             return $matches[2];
         }
     }

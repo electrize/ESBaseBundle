@@ -11,7 +11,6 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Templating\Helper;
 
-use Symfony\Component\HttpKernel\Debug\FileLinkFormatter;
 use Symfony\Component\Templating\Helper\Helper;
 
 /**
@@ -24,9 +23,9 @@ class CodeHelper extends Helper
     protected $charset;
 
     /**
-     * @param string|FileLinkFormatter $fileLinkFormat The format for links to source files
-     * @param string                   $rootDir        The project root directory
-     * @param string                   $charset        The charset
+     * @param string $fileLinkFormat The format for links to source files
+     * @param string $rootDir        The project root directory
+     * @param string $charset        The charset
      */
     public function __construct($fileLinkFormat, $rootDir, $charset)
     {
@@ -116,7 +115,7 @@ class CodeHelper extends Helper
     {
         if (is_readable($file)) {
             if (extension_loaded('fileinfo')) {
-                $finfo = new \Finfo();
+                $finfo = new \finfo();
 
                 // Check if the file is an application/octet-stream (eg. Phar file) because highlight_file cannot parse these files
                 if ('application/octet-stream' === $finfo->file($file, FILEINFO_MIME_TYPE)) {
@@ -151,7 +150,11 @@ class CodeHelper extends Helper
      */
     public function formatFile($file, $line, $text = null)
     {
-        $flags = ENT_QUOTES | ENT_SUBSTITUTE;
+        if (\PHP_VERSION_ID >= 50400) {
+            $flags = ENT_QUOTES | ENT_SUBSTITUTE;
+        } else {
+            $flags = ENT_QUOTES;
+        }
 
         if (null === $text) {
             $file = trim($file);
@@ -182,8 +185,8 @@ class CodeHelper extends Helper
      */
     public function getFileLink($file, $line)
     {
-        if ($fmt = $this->fileLinkFormat) {
-            return is_string($fmt) ? strtr($fmt, array('%f' => $file, '%l' => $line)) : $fmt->format($file, $line);
+        if ($this->fileLinkFormat && is_file($file)) {
+            return strtr($this->fileLinkFormat, array('%f' => $file, '%l' => $line));
         }
 
         return false;
@@ -191,8 +194,10 @@ class CodeHelper extends Helper
 
     public function formatFileFromText($text)
     {
-        return preg_replace_callback('/in ("|&quot;)?(.+?)\1(?: +(?:on|at))? +line (\d+)/s', function ($match) {
-            return 'in '.$this->formatFile($match[2], $match[3]);
+        $that = $this;
+
+        return preg_replace_callback('/in ("|&quot;)?(.+?)\1(?: +(?:on|at))? +line (\d+)/s', function ($match) use ($that) {
+            return 'in '.$that->formatFile($match[2], $match[3]);
         }, $text);
     }
 

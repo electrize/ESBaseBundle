@@ -2,8 +2,6 @@
 
 namespace Knp\Menu\Integration\Silex;
 
-@trigger_error('The '.__NAMESPACE__.'\KnpMenuServiceProvider class is deprecated since version 2.3 and will be removed in 3.0. Use the provider available in the "knplabs/knp-menu-silex" package instead.', E_USER_DEPRECATED);
-
 use Knp\Menu\Integration\Symfony\RoutingExtension;
 use Silex\Application;
 use Silex\ServiceProviderInterface;
@@ -72,7 +70,7 @@ class KnpMenuServiceProvider implements ServiceProviderInterface
         }
 
         $app['knp_menu.helper'] = $app->share(function () use ($app) {
-            return new Helper($app['knp_menu.renderer_provider'], $app['knp_menu.menu_provider'], $app['knp_menu.menu_manipulator'], $app['knp_menu.matcher']);
+            return new Helper($app['knp_menu.renderer_provider'], $app['knp_menu.menu_provider'], $app['knp_menu.menu_manipulator']);
         });
 
         if (isset($app['twig'])) {

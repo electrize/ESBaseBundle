@@ -14,6 +14,7 @@ namespace Symfony\Bridge\ProxyManager\LazyProxy\PhpDumper;
 use ProxyManager\Generator\ClassGenerator;
 use ProxyManager\GeneratorStrategy\BaseGeneratorStrategy;
 use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\LazyProxy\PhpDumper\DumperInterface;
 
@@ -21,8 +22,6 @@ use Symfony\Component\DependencyInjection\LazyProxy\PhpDumper\DumperInterface;
  * Generates dumped PHP code of proxies via reflection.
  *
  * @author Marco Pivetta <ocramius@gmail.com>
- *
- * @final since version 3.3
  */
 class ProxyDumper implements DumperInterface
 {
@@ -51,38 +50,40 @@ class ProxyDumper implements DumperInterface
     /**
      * {@inheritdoc}
      */
-    public function getProxyFactoryCode(Definition $definition, $id, $factoryCode = null)
+    public function getProxyFactoryCode(Definition $definition, $id)
     {
         $instantiation = 'return';
 
         if ($definition->isShared()) {
             $instantiation .= " \$this->services['$id'] =";
+
+            if (defined('Symfony\Component\DependencyInjection\ContainerInterface::SCOPE_CONTAINER') && ContainerInterface::SCOPE_CONTAINER !== $scope = $definition->getScope(false)) {
+                $instantiation .= " \$this->scopedServices['$scope']['$id'] =";
+            }
         }
 
-        if (null === $factoryCode) {
-            @trigger_error(sprintf('The "%s()" method expects a third argument defining the code to execute to construct your service since version 3.4, providing it will be required in 4.0.', __METHOD__), E_USER_DEPRECATED);
-            $factoryCode = '$this->get'.Container::camelize($id).'Service(false)';
-        } elseif (false === strpos($factoryCode, '(')) {
-            @trigger_error(sprintf('The "%s()" method expects its third argument to define the code to execute to construct your service since version 3.4, providing it will be required in 4.0.', __METHOD__), E_USER_DEPRECATED);
-            $factoryCode = "\$this->$factoryCode(false)";
-        }
+        $methodName = 'get'.Container::camelize($id).'Service';
         $proxyClass = $this->getProxyClassName($definition);
 
-        $hasStaticConstructor = $this->generateProxyClass($definition)->hasMethod('staticProxyConstructor');
+        $generatedClass = $this->generateProxyClass($definition);
 
-        $constructorCall = sprintf($hasStaticConstructor ? '%s::staticProxyConstructor' : 'new %s', '\\'.$proxyClass);
+        $constructorCall = $generatedClass->hasMethod('staticProxyConstructor')
+            ? $proxyClass.'::staticProxyConstructor'
+            : 'new '.$proxyClass;
 
         return <<<EOF
         if (\$lazyLoad) {
-            $instantiation \$this->createProxy('$proxyClass', function () {
-                return $constructorCall(function (&\$wrappedInstance, \ProxyManager\Proxy\LazyLoadingInterface \$proxy) {
-                    \$wrappedInstance = $factoryCode;
+            \$container = \$this;
+
+            $instantiation $constructorCall(
+                function (&\$wrappedInstance, \ProxyManager\Proxy\LazyLoadingInterface \$proxy) use (\$container) {
+                    \$wrappedInstance = \$container->$methodName(false);
 
                     \$proxy->setProxyInitializer(null);
 
                     return true;
-                });
-            });
+                }
+            );
         }
 
 
@@ -108,7 +109,7 @@ EOF;
      */
     private function getProxyClassName(Definition $definition)
     {
-        return preg_replace('/^.*\\\\/', '', $definition->getClass()).'_'.substr(hash('sha256', spl_object_hash($definition).$this->salt), -7);
+        return str_replace('\\', '', $definition->getClass()).'_'.spl_object_hash($definition).$this->salt;
     }
 
     /**

@@ -44,7 +44,6 @@ class CoreExtension extends AbstractExtension
             new Type\ChoiceType($this->choiceListFactory),
             new Type\CollectionType(),
             new Type\CountryType(),
-            new Type\DateIntervalType(),
             new Type\DateType(),
             new Type\DateTimeType(),
             new Type\EmailType(),
@@ -70,8 +69,6 @@ class CoreExtension extends AbstractExtension
             new Type\SubmitType(),
             new Type\ResetType(),
             new Type\CurrencyType(),
-            new Type\TelType(),
-            new Type\ColorType(),
         );
     }
 }

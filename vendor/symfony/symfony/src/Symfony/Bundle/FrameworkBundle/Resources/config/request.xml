@@ -4,10 +4,12 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
-    <services>
-        <defaults public="false" />
+    <parameters>
+        <parameter key="request.add_request_formats_listener.class">Symfony\Component\HttpKernel\EventListener\AddRequestFormatsListener</parameter>
+    </parameters>
 
-        <service id="request.add_request_formats_listener" class="Symfony\Component\HttpKernel\EventListener\AddRequestFormatsListener">
+    <services>
+        <service id="request.add_request_formats_listener" class="%request.add_request_formats_listener.class%">
             <tag name="kernel.event_subscriber" />
             <argument/>
         </service>

@@ -11,14 +11,11 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Tests\Functional\Bundle\TestBundle\Controller;
 
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\DependencyInjection\ContainerAware;
 
-class ProfilerController implements ContainerAwareInterface
+class ProfilerController extends ContainerAware
 {
-    use ContainerAwareTrait;
-
     public function indexAction()
     {
         return new Response('Hello');

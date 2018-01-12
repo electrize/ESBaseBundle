@@ -25,6 +25,16 @@ class LanguageTypeTest extends BaseTypeTest
         parent::setUp();
     }
 
+    /**
+     * @group legacy
+     */
+    public function testLegacyName()
+    {
+        $form = $this->factory->create('language');
+
+        $this->assertSame('language', $form->getConfig()->getType()->getName());
+    }
+
     public function testCountriesAreSelectable()
     {
         $choices = $this->factory->create(static::TESTED_TYPE)

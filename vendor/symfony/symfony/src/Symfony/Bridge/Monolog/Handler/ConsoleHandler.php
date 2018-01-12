@@ -11,7 +11,6 @@
 
 namespace Symfony\Bridge\Monolog\Handler;
 
-use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Logger;
 use Symfony\Bridge\Monolog\Formatter\ConsoleFormatter;
@@ -21,7 +20,6 @@ use Symfony\Component\Console\Event\ConsoleTerminateEvent;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\VarDumper\Dumper\CliDumper;
 
 /**
  * Writes logs to the console output depending on its verbosity setting.
@@ -44,7 +42,6 @@ class ConsoleHandler extends AbstractProcessingHandler implements EventSubscribe
 {
     private $output;
     private $verbosityLevelMap = array(
-        OutputInterface::VERBOSITY_QUIET => Logger::ERROR,
         OutputInterface::VERBOSITY_NORMAL => Logger::WARNING,
         OutputInterface::VERBOSITY_VERBOSE => Logger::NOTICE,
         OutputInterface::VERBOSITY_VERY_VERBOSE => Logger::INFO,
@@ -142,8 +139,7 @@ class ConsoleHandler extends AbstractProcessingHandler implements EventSubscribe
      */
     protected function write(array $record)
     {
-        // at this point we've determined for sure that we want to output the record, so use the output's own verbosity
-        $this->output->write((string) $record['formatted'], false, $this->output->getVerbosity());
+        $this->output->write((string) $record['formatted']);
     }
 
     /**
@@ -151,17 +147,7 @@ class ConsoleHandler extends AbstractProcessingHandler implements EventSubscribe
      */
     protected function getDefaultFormatter()
     {
-        if (!class_exists(CliDumper::class)) {
-            return new LineFormatter();
-        }
-        if (!$this->output) {
-            return new ConsoleFormatter();
-        }
-
-        return new ConsoleFormatter(array(
-            'colors' => $this->output->isDecorated(),
-            'multiline' => OutputInterface::VERBOSITY_DEBUG <= $this->output->getVerbosity(),
-        ));
+        return new ConsoleFormatter();
     }
 
     /**
@@ -171,11 +157,10 @@ class ConsoleHandler extends AbstractProcessingHandler implements EventSubscribe
      */
     private function updateLevel()
     {
-        if (null === $this->output) {
+        if (null === $this->output || OutputInterface::VERBOSITY_QUIET === $verbosity = $this->output->getVerbosity()) {
             return false;
         }
 
-        $verbosity = $this->output->getVerbosity();
         if (isset($this->verbosityLevelMap[$verbosity])) {
             $this->setLevel($this->verbosityLevelMap[$verbosity]);
         } else {

@@ -11,13 +11,11 @@
 
 namespace Symfony\Component\Security\Http\Authentication;
 
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Security\Core\Authentication\SimpleAuthenticatorInterface;
+use Symfony\Component\Security\Core\Authentication\SimplePreAuthenticatorInterface as BaseSimplePreAuthenticatorInterface;
 
 /**
  * @author Jordi Boggiano <j.boggiano@seld.be>
  */
-interface SimplePreAuthenticatorInterface extends SimpleAuthenticatorInterface
+interface SimplePreAuthenticatorInterface extends BaseSimplePreAuthenticatorInterface
 {
-    public function createToken(Request $request, $providerKey);
 }

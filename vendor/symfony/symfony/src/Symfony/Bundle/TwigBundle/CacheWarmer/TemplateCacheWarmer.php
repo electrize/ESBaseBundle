@@ -11,8 +11,7 @@
 
 namespace Symfony\Bundle\TwigBundle\CacheWarmer;
 
-use Psr\Container\ContainerInterface;
-use Symfony\Component\DependencyInjection\ServiceSubscriberInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpKernel\CacheWarmer\CacheWarmerInterface;
 use Twig\Environment;
 use Twig\Error\Error;
@@ -22,7 +21,7 @@ use Twig\Error\Error;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
-class TemplateCacheWarmer implements CacheWarmerInterface, ServiceSubscriberInterface
+class TemplateCacheWarmer implements CacheWarmerInterface
 {
     private $container;
     private $twig;
@@ -31,8 +30,8 @@ class TemplateCacheWarmer implements CacheWarmerInterface, ServiceSubscriberInte
     /**
      * TemplateCacheWarmer constructor.
      *
-     * @param ContainerInterface $container
-     * @param \Traversable       $iterator
+     * @param ContainerInterface|Environment $container
+     * @param \Traversable                   $iterator
      */
     public function __construct($container, \Traversable $iterator)
     {
@@ -41,9 +40,8 @@ class TemplateCacheWarmer implements CacheWarmerInterface, ServiceSubscriberInte
             $this->container = $container;
         } elseif ($container instanceof Environment) {
             $this->twig = $container;
-            @trigger_error(sprintf('Using a "%s" as first argument of %s is deprecated since version 3.4 and will be unsupported in version 4.0. Use a %s instead.', Environment::class, __CLASS__, ContainerInterface::class), E_USER_DEPRECATED);
         } else {
-            throw new \InvalidArgumentException(sprintf('%s only accepts instance of Psr\Container\ContainerInterface as first argument.', __CLASS__));
+            throw new \InvalidArgumentException(sprintf('%s only accepts instance of Symfony\Component\DependencyInjection\ContainerInterface or Environment as first argument.', __CLASS__));
         }
 
         $this->iterator = $iterator;
@@ -74,15 +72,5 @@ class TemplateCacheWarmer implements CacheWarmerInterface, ServiceSubscriberInte
     public function isOptional()
     {
         return true;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public static function getSubscribedServices()
-    {
-        return array(
-            'twig' => Environment::class,
-        );
     }
 }

@@ -1,7 +1,7 @@
 <?php
 
 $container->loadFromExtension('framework', array(
-    'assets' => array(
-        'enabled' => false,
+    'templating' => array(
+        'engines' => array('php', 'twig'),
     ),
 ));

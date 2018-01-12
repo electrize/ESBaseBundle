@@ -3,13 +3,16 @@
 $container->loadFromExtension('framework', array(
     'secret' => 's3cr3t',
     'default_locale' => 'fr',
-    'csrf_protection' => true,
     'form' => array(
         'csrf_protection' => array(
             'field_name' => '_csrf',
         ),
     ),
     'http_method_override' => false,
+    'trusted_proxies' => array('127.0.0.1', '10.0.0.1'),
+    'csrf_protection' => array(
+        'enabled' => true,
+    ),
     'esi' => array(
         'enabled' => true,
     ),
@@ -21,7 +24,7 @@ $container->loadFromExtension('framework', array(
         'enabled' => false,
     ),
     'router' => array(
-        'resource' => '%kernel.project_dir%/config/routing.xml',
+        'resource' => '%kernel.root_dir%/config/routing.xml',
         'type' => 'xml',
     ),
     'session' => array(
@@ -48,16 +51,14 @@ $container->loadFromExtension('framework', array(
         ),
         'hinclude_default_template' => 'global_hinclude_template',
     ),
-    'assets' => array(
-        'version' => 'v1',
-    ),
     'translator' => array(
         'enabled' => true,
         'fallback' => 'fr',
-        'paths' => array('%kernel.project_dir%/Fixtures/translations'),
+        'paths' => array('%kernel.root_dir%/Fixtures/translations'),
     ),
     'validation' => array(
         'enabled' => true,
+        'cache' => 'validator.mapping.cache.doctrine.apc',
     ),
     'annotations' => array(
         'cache' => 'file',
@@ -67,9 +68,9 @@ $container->loadFromExtension('framework', array(
     'serializer' => array(
         'enabled' => true,
         'enable_annotations' => true,
+        'cache' => 'serializer.mapping.cache.apc',
         'name_converter' => 'serializer.name_converter.camel_case_to_snake_case',
     ),
-    'property_info' => true,
     'ide' => 'file%%link%%format',
     'request' => array(
         'formats' => array(

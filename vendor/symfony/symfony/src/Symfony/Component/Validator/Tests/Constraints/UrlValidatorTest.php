@@ -14,13 +14,18 @@ namespace Symfony\Component\Validator\Tests\Constraints;
 use Symfony\Bridge\PhpUnit\DnsMock;
 use Symfony\Component\Validator\Constraints\Url;
 use Symfony\Component\Validator\Constraints\UrlValidator;
-use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
+use Symfony\Component\Validator\Validation;
 
 /**
  * @group dns-sensitive
  */
-class UrlValidatorTest extends ConstraintValidatorTestCase
+class UrlValidatorTest extends AbstractConstraintValidatorTest
 {
+    protected function getApiVersion()
+    {
+        return Validation::API_VERSION_2_5;
+    }
+
     protected function createValidator()
     {
         return new UrlValidator();
@@ -206,7 +211,7 @@ class UrlValidatorTest extends ConstraintValidatorTestCase
         DnsMock::withMockedHosts(array('example.com' => array(array('type' => $violation ? '' : 'A'))));
 
         $constraint = new Url(array(
-            'checkDNS' => 'ANY',
+            'checkDNS' => true,
             'dnsMessage' => 'myMessage',
         ));
 
@@ -225,75 +230,6 @@ class UrlValidatorTest extends ConstraintValidatorTestCase
     public function getCheckDns()
     {
         return array(array(true), array(false));
-    }
-
-    /**
-     * @dataProvider getCheckDnsTypes
-     * @requires function Symfony\Bridge\PhpUnit\DnsMock::withMockedHosts
-     */
-    public function testCheckDnsByType($type)
-    {
-        DnsMock::withMockedHosts(array('example.com' => array(array('type' => $type))));
-
-        $constraint = new Url(array(
-            'checkDNS' => $type,
-            'dnsMessage' => 'myMessage',
-        ));
-
-        $this->validator->validate('http://example.com', $constraint);
-
-        $this->assertNoViolation();
-    }
-
-    public function getCheckDnsTypes()
-    {
-        return array(
-            array('ANY'),
-            array('A'),
-            array('A6'),
-            array('AAAA'),
-            array('CNAME'),
-            array('MX'),
-            array('NAPTR'),
-            array('NS'),
-            array('PTR'),
-            array('SOA'),
-            array('SRV'),
-            array('TXT'),
-        );
-    }
-
-    /**
-     * @group legacy
-     */
-    public function testCheckDnsWithBoolean()
-    {
-        DnsMock::withMockedHosts(array('example.com' => array(array('type' => 'A'))));
-
-        $constraint = new Url(array(
-            'checkDNS' => true,
-            'dnsMessage' => 'myMessage',
-        ));
-
-        $this->validator->validate('http://example.com', $constraint);
-
-        $this->assertNoViolation();
-    }
-
-    /**
-     * @expectedException \Symfony\Component\Validator\Exception\InvalidOptionsException
-     * @requires function Symfony\Bridge\PhpUnit\DnsMock::withMockedHosts
-     */
-    public function testCheckDnsWithInvalidType()
-    {
-        DnsMock::withMockedHosts(array('example.com' => array(array('type' => 'A'))));
-
-        $constraint = new Url(array(
-            'checkDNS' => 'BOGUS',
-            'dnsMessage' => 'myMessage',
-        ));
-
-        $this->validator->validate('http://example.com', $constraint);
     }
 }
 

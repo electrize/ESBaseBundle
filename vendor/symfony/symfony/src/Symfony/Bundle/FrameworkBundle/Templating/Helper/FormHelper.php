@@ -43,13 +43,12 @@ class FormHelper extends Helper
      *
      * The theme format is "<Bundle>:<Controller>".
      *
-     * @param FormView     $view             A FormView instance
-     * @param string|array $themes           A theme or an array of theme
-     * @param bool         $useDefaultThemes If true, will use default themes defined in the renderer
+     * @param FormView     $view   A FormView instance
+     * @param string|array $themes A theme or an array of theme
      */
-    public function setTheme(FormView $view, $themes, $useDefaultThemes = true)
+    public function setTheme(FormView $view, $themes)
     {
-        $this->renderer->setTheme($view, $themes, $useDefaultThemes);
+        $this->renderer->setTheme($view, $themes);
     }
 
     /**
@@ -113,6 +112,27 @@ class FormHelper extends Helper
     public function end(FormView $view, array $variables = array())
     {
         return $this->renderer->renderBlock($view, 'form_end', $variables);
+    }
+
+    /**
+     * Renders the HTML enctype in the form tag, if necessary.
+     *
+     * Example usage templates:
+     *
+     *     <form action="..." method="post" <?php echo $view['form']->enctype($form) ?>>
+     *
+     * @param FormView $view The view for which to render the encoding type
+     *
+     * @return string The HTML markup
+     *
+     * @deprecated since version 2.3, to be removed in 3.0.
+     *             Use {@link start} instead.
+     */
+    public function enctype(FormView $view)
+    {
+        @trigger_error('The form helper $view[\'form\']->enctype() is deprecated since Symfony 2.3 and will be removed in 3.0. Use $view[\'form\']->start() instead.', E_USER_DEPRECATED);
+
+        return $this->renderer->searchAndRenderBlock($view, 'enctype');
     }
 
     /**
@@ -216,24 +236,24 @@ class FormHelper extends Helper
      * echo $view['form']->csrfToken('rm_user_'.$user->getId());
      * </code>
      *
-     * Check the token in your action using the same CSRF token id.
+     * Check the token in your action using the same intention.
      *
      * <code>
-     * // $csrfProvider being an instance of Symfony\Component\Security\Csrf\TokenGenerator\TokenGeneratorInterface
+     * $csrfProvider = $this->get('security.csrf.token_generator');
      * if (!$csrfProvider->isCsrfTokenValid('rm_user_'.$user->getId(), $token)) {
      *     throw new \RuntimeException('CSRF attack detected.');
      * }
      * </code>
      *
-     * @param string $tokenId The CSRF token id of the protected action
+     * @param string $intention The intention of the protected action
      *
      * @return string A CSRF token
      *
      * @throws \BadMethodCallException when no CSRF provider was injected in the constructor
      */
-    public function csrfToken($tokenId)
+    public function csrfToken($intention)
     {
-        return $this->renderer->renderCsrfToken($tokenId);
+        return $this->renderer->renderCsrfToken($intention);
     }
 
     public function humanize($text)

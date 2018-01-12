@@ -20,7 +20,7 @@ use Symfony\Component\Intl\Exception\NotImplementedException;
  *
  * @internal
  */
-class TimezoneTransformer extends Transformer
+class TimeZoneTransformer extends Transformer
 {
     /**
      * {@inheritdoc}

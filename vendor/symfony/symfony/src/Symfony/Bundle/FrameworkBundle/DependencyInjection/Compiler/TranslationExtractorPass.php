@@ -11,15 +11,29 @@
 
 namespace Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler;
 
-@trigger_error(sprintf('The %s class is deprecated since version 3.4 and will be removed in 4.0. Use Symfony\Component\Translation\DependencyInjection\TranslationExtractorPass instead.', TranslationExtractorPass::class), E_USER_DEPRECATED);
-
-use Symfony\Component\Translation\DependencyInjection\TranslationExtractorPass as BaseTranslationExtractorPass;
+use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 
 /**
- * Adds tagged translation.formatter services to translation writer.
- *
- * @deprecated since version 3.4, to be removed in 4.0. Use {@link BaseTranslationDumperPass instead}.
+ * Adds tagged translation.extractor services to translation extractor.
  */
-class TranslationExtractorPass extends BaseTranslationExtractorPass
+class TranslationExtractorPass implements CompilerPassInterface
 {
+    public function process(ContainerBuilder $container)
+    {
+        if (!$container->hasDefinition('translation.extractor')) {
+            return;
+        }
+
+        $definition = $container->getDefinition('translation.extractor');
+
+        foreach ($container->findTaggedServiceIds('translation.extractor') as $id => $attributes) {
+            if (!isset($attributes[0]['alias'])) {
+                throw new \RuntimeException(sprintf('The alias for the tag "translation.extractor" of service "%s" must be set.', $id));
+            }
+
+            $definition->addMethodCall('addExtractor', array($attributes[0]['alias'], new Reference($id)));
+        }
+    }
 }

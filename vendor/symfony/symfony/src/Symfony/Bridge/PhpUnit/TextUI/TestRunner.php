@@ -11,21 +11,16 @@
 
 namespace Symfony\Bridge\PhpUnit\TextUI;
 
-use PHPUnit\TextUI\TestRunner as BaseRunner;
 use Symfony\Bridge\PhpUnit\SymfonyTestsListener;
 
-if (class_exists('PHPUnit_Runner_Version') && version_compare(\PHPUnit_Runner_Version::id(), '6.0.0', '<')) {
-    class_alias('Symfony\Bridge\PhpUnit\Legacy\TestRunner', 'Symfony\Bridge\PhpUnit\TextUI\TestRunner');
-
+if (!class_exists('PHPUnit_TextUI_TestRunner')) {
     return;
 }
 
 /**
  * {@inheritdoc}
- *
- * @internal
  */
-class TestRunner extends BaseRunner
+class TestRunner extends \PHPUnit_TextUI_TestRunner
 {
     /**
      * {@inheritdoc}

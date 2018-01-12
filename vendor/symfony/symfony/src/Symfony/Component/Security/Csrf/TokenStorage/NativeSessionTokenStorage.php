@@ -87,24 +87,22 @@ class NativeSessionTokenStorage implements TokenStorageInterface
             $this->startSession();
         }
 
-        if (!isset($_SESSION[$this->namespace][$tokenId])) {
-            return;
-        }
-
-        $token = (string) $_SESSION[$this->namespace][$tokenId];
+        $token = isset($_SESSION[$this->namespace][$tokenId])
+            ? (string) $_SESSION[$this->namespace][$tokenId]
+            : null;
 
         unset($_SESSION[$this->namespace][$tokenId]);
-
-        if (!$_SESSION[$this->namespace]) {
-            unset($_SESSION[$this->namespace]);
-        }
 
         return $token;
     }
 
     private function startSession()
     {
-        if (PHP_SESSION_NONE === session_status()) {
+        if (\PHP_VERSION_ID >= 50400) {
+            if (PHP_SESSION_NONE === session_status()) {
+                session_start();
+            }
+        } elseif (!session_id()) {
             session_start();
         }
 

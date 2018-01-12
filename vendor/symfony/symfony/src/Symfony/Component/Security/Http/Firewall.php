@@ -53,7 +53,14 @@ class Firewall implements EventSubscriberInterface
             $exceptionListener->register($this->dispatcher);
         }
 
-        return $this->handleRequest($event, $listeners);
+        // initiate the listener chain
+        foreach ($listeners as $listener) {
+            $listener->handle($event);
+
+            if ($event->hasResponse()) {
+                break;
+            }
+        }
     }
 
     public function onKernelFinishRequest(FinishRequestEvent $event)
@@ -75,16 +82,5 @@ class Firewall implements EventSubscriberInterface
             KernelEvents::REQUEST => array('onKernelRequest', 8),
             KernelEvents::FINISH_REQUEST => 'onKernelFinishRequest',
         );
-    }
-
-    protected function handleRequest(GetResponseEvent $event, $listeners)
-    {
-        foreach ($listeners as $listener) {
-            $listener->handle($event);
-
-            if ($event->hasResponse()) {
-                break;
-            }
-        }
     }
 }

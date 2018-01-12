@@ -33,7 +33,7 @@ class RedirectableUrlMatcherTest extends TestCase
                 'scheme' => null,
                 'httpPort' => $context->getHttpPort(),
                 'httpsPort' => $context->getHttpsPort(),
-                '_route' => 'foo',
+                '_route' => null,
             ),
             $matcher->match('/foo')
         );

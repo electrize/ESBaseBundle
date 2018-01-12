@@ -182,9 +182,7 @@ menu object in the other functions:
 
 {% set item = knp_menu_get('sidebar', ['First section']) %}
 
-{% set breadcrumbs_array = knp_menu_get_breadcrumbs_array('main') %}
-
-{% set current_item = knp_menu_get_current_item('main') %}
+{% set breacrumbs_array = knp_menu_get_breadcrumbs_array('main') %}
 ```
 
 In some cases, you may want to build the menu differently according to the
@@ -285,23 +283,7 @@ Twig integration reference
 
 * `knp_menu_get('menuName' [, ['Path', 'To', 'Item'], ['options']])`: retrieve an item of the menu
 * `knp_menu_render('menuName' [, ['options'], 'rendererName'])`: render a menu
-* `knp_menu_get_breadcrumbs_array('menuName' [, 'subItem'])`: get an array that represent the breadcrumbs of the current page (according to the menu)
-* `knp_menu_get_current_item('menuName')`: retrieve the current item (according to the menu)
-
-You can easily generate a breadcrumb of the current page by combining the
-`knp_menu_get_breadcrumbs_array` and `knp_menu_get_current_item` functions:
-
-```jinja
-<ol class="breadcrumb">
-{% for breadcrumb_item in knp_menu_get_breadcrumbs_array(knp_menu_get_current_item('main')) %}
-    {% if not loop.last %}
-    <li><a href="{{ breadcrumb_item.uri }}">{{ breadcrumb_item.label }}</a></li>
-    {% else %}
-    <li class="active">{{ breadcrumb_item.label }}</li>
-    {% endif %}
-{% endfor %}
-</ol>
-```
+* `knp_menu_get_breadcrumbs_array('menuName' [, 'subItem'])`: get an array that represent the breadcrubs of the current page (according to the menu)
 
 ### Filters
 

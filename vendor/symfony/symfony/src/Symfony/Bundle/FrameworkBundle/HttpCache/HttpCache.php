@@ -53,6 +53,7 @@ abstract class HttpCache extends BaseHttpCache
     {
         $this->getKernel()->boot();
         $this->getKernel()->getContainer()->set('cache', $this);
+        $this->getKernel()->getContainer()->set($this->getSurrogate()->getName(), $this->getSurrogate());
 
         return parent::forward($request, $raw, $entry);
     }
@@ -70,6 +71,20 @@ abstract class HttpCache extends BaseHttpCache
     protected function createSurrogate()
     {
         return new Esi();
+    }
+
+    /**
+     * Creates new ESI instance.
+     *
+     * @return Esi
+     *
+     * @deprecated since version 2.6, to be removed in 3.0. Use createSurrogate() instead
+     */
+    protected function createEsi()
+    {
+        @trigger_error('The '.__METHOD__.' method is deprecated since Symfony 2.6 and will be removed in 3.0. Use createSurrogate() instead.', E_USER_DEPRECATED);
+
+        return $this->createSurrogate();
     }
 
     protected function createStore()

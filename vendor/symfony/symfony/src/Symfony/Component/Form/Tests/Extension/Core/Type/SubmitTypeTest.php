@@ -18,6 +18,16 @@ class SubmitTypeTest extends ButtonTypeTest
 {
     const TESTED_TYPE = 'Symfony\Component\Form\Extension\Core\Type\SubmitType';
 
+    /**
+     * @group legacy
+     */
+    public function testLegacyName()
+    {
+        $form = $this->factory->create('submit');
+
+        $this->assertSame('submit', $form->getConfig()->getType()->getName());
+    }
+
     public function testCreateSubmitButtonInstances()
     {
         $this->assertInstanceOf('Symfony\Component\Form\SubmitButton', $this->factory->create(static::TESTED_TYPE));

@@ -17,8 +17,7 @@ use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
 
 class WebProfilerExtensionTest extends TestCase
 {
@@ -28,13 +27,10 @@ class WebProfilerExtensionTest extends TestCase
      */
     private $container;
 
-    public static function assertSaneContainer(Container $container, $message = '', $knownPrivates = array())
+    public static function assertSaneContainer(Container $container, $message = '')
     {
         $errors = array();
         foreach ($container->getServiceIds() as $id) {
-            if (in_array($id, $knownPrivates, true)) { // to be removed in 4.0
-                continue;
-            }
             try {
                 $container->get($id);
             } catch (\Exception $e) {
@@ -52,24 +48,19 @@ class WebProfilerExtensionTest extends TestCase
         $this->kernel = $this->getMockBuilder('Symfony\\Component\\HttpKernel\\KernelInterface')->getMock();
 
         $this->container = new ContainerBuilder();
-        $this->container->register('event_dispatcher', EventDispatcher::class)->setPublic(true);
-        $this->container->register('router', $this->getMockClass('Symfony\\Component\\Routing\\RouterInterface'))->setPublic(true);
-        $this->container->register('twig', 'Twig\Environment')->setPublic(true);
-        $this->container->register('twig_loader', 'Twig\Loader\ArrayLoader')->addArgument(array())->setPublic(true);
-        $this->container->register('twig', 'Twig\Environment')->addArgument(new Reference('twig_loader'))->setPublic(true);
+        $this->container->register('router', $this->getMockClass('Symfony\\Component\\Routing\\RouterInterface'));
+        $this->container->register('twig', 'Twig\Environment');
+        $this->container->register('twig_loader', 'Twig\Loader\ArrayLoader')->addArgument(array());
+        $this->container->register('twig', 'Twig\Environment')->addArgument(new Reference('twig_loader'));
         $this->container->setParameter('kernel.bundles', array());
         $this->container->setParameter('kernel.cache_dir', __DIR__);
         $this->container->setParameter('kernel.debug', false);
-        $this->container->setParameter('kernel.project_dir', __DIR__);
-        $this->container->setParameter('kernel.charset', 'UTF-8');
-        $this->container->setParameter('debug.file_link_format', null);
+        $this->container->setParameter('kernel.root_dir', __DIR__);
         $this->container->setParameter('profiler.class', array('Symfony\\Component\\HttpKernel\\Profiler\\Profiler'));
         $this->container->register('profiler', $this->getMockClass('Symfony\\Component\\HttpKernel\\Profiler\\Profiler'))
-            ->setPublic(true)
             ->addArgument(new Definition($this->getMockClass('Symfony\\Component\\HttpKernel\\Profiler\\ProfilerStorageInterface')));
         $this->container->setParameter('data_collector.templates', array());
         $this->container->set('kernel', $this->kernel);
-        $this->container->addCompilerPass(new RegisterListenersPass());
     }
 
     protected function tearDown()
@@ -92,7 +83,7 @@ class WebProfilerExtensionTest extends TestCase
 
         $this->assertFalse($this->container->has('web_profiler.debug_toolbar'));
 
-        $this->assertSaneContainer($this->getCompiledContainer());
+        $this->assertSaneContainer($this->getDumpedContainer());
     }
 
     /**
@@ -105,11 +96,11 @@ class WebProfilerExtensionTest extends TestCase
 
         $this->assertSame($listenerInjected, $this->container->has('web_profiler.debug_toolbar'));
 
-        $this->assertSaneContainer($this->getCompiledContainer(), '', array('web_profiler.csp.handler'));
-
         if ($listenerInjected) {
             $this->assertSame($listenerEnabled, $this->container->get('web_profiler.debug_toolbar')->isEnabled());
         }
+
+        $this->assertSaneContainer($this->getDumpedContainer());
     }
 
     public function getDebugModes()
@@ -122,14 +113,19 @@ class WebProfilerExtensionTest extends TestCase
         );
     }
 
-    private function getCompiledContainer()
+    private function getDumpedContainer()
     {
-        if ($this->container->has('web_profiler.debug_toolbar')) {
-            $this->container->getDefinition('web_profiler.debug_toolbar')->setPublic(true);
-        }
-        $this->container->compile();
-        $this->container->set('kernel', $this->kernel);
+        static $i = 0;
+        $class = 'WebProfilerExtensionTestContainer'.$i++;
 
-        return $this->container;
+        $this->container->compile();
+
+        $dumper = new PhpDumper($this->container);
+        eval('?>'.$dumper->dump(array('class' => $class)));
+
+        $container = new $class();
+        $container->set('kernel', $this->kernel);
+
+        return $container;
     }
 }

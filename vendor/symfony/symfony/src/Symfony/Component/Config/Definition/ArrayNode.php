@@ -248,10 +248,6 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
                 continue;
             }
 
-            if ($child->isDeprecated()) {
-                @trigger_error($child->getDeprecationMessage($name, $this->getPath()), E_USER_DEPRECATED);
-            }
-
             try {
                 $value[$name] = $child->finalize($value[$name]);
             } catch (UnsetKeyException $e) {
@@ -334,7 +330,9 @@ class ArrayNode extends BaseNode implements PrototypeNodeInterface
      */
     protected function remapXml($value)
     {
-        foreach ($this->xmlRemappings as list($singular, $plural)) {
+        foreach ($this->xmlRemappings as $transformation) {
+            list($singular, $plural) = $transformation;
+
             if (!isset($value[$singular])) {
                 continue;
             }

@@ -6,6 +6,8 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
 
     <config>
+        <acl />
+
         <encoder class="JMS\FooBundle\Entity\User1" algorithm="plaintext" />
 
         <encoder class="JMS\FooBundle\Entity\User2" algorithm="sha1" encode-as-base64="false" iterations="5" />
@@ -43,13 +45,14 @@
             <chain providers="service, basic" />
         </provider>
 
-        <firewall name="simple" pattern="/login" security="false" provider="default" />
+        <firewall name="simple" pattern="/login" security="false" />
 
-        <firewall name="secure" stateless="true" provider="default">
+        <firewall name="secure" stateless="true">
             <http-basic />
+            <http-digest secret="TheSecret" />
             <form-login />
             <anonymous />
-            <switch-user stateless="true" />
+            <switch-user />
             <x509 />
             <remote-user />
             <user-checker />
@@ -57,12 +60,12 @@
             <remember-me secret="TheSecret"/>
         </firewall>
 
-        <firewall name="host" pattern="/test" host="foo\.example\.org" methods="GET,POST" logout-on-user-change="true" provider="default">
+        <firewall name="host" pattern="/test" host="foo\.example\.org" methods="GET,POST">
             <anonymous />
             <http-basic />
         </firewall>
 
-        <firewall name="with_user_checker" logout-on-user-change="true" provider="default">
+        <firewall name="with_user_checker">
             <anonymous />
             <http-basic />
             <user-checker>app.user_checker</user-checker>

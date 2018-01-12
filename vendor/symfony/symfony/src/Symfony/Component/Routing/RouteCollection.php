@@ -126,9 +126,7 @@ class RouteCollection implements \IteratorAggregate, \Countable
             $this->routes[$name] = $route;
         }
 
-        foreach ($collection->getResources() as $resource) {
-            $this->addResource($resource);
-        }
+        $this->resources = array_merge($this->resources, $collection->getResources());
     }
 
     /**
@@ -262,19 +260,14 @@ class RouteCollection implements \IteratorAggregate, \Countable
      */
     public function getResources()
     {
-        return array_values($this->resources);
+        return array_unique($this->resources);
     }
 
     /**
-     * Adds a resource for this collection. If the resource already exists
-     * it is not added.
+     * Adds a resource for this collection.
      */
     public function addResource(ResourceInterface $resource)
     {
-        $key = (string) $resource;
-
-        if (!isset($this->resources[$key])) {
-            $this->resources[$key] = $resource;
-        }
+        $this->resources[] = $resource;
     }
 }

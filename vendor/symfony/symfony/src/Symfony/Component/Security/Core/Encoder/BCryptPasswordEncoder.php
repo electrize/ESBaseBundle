@@ -17,7 +17,7 @@ use Symfony\Component\Security\Core\Exception\BadCredentialsException;
  * @author Elnur Abdurrakhimov <elnur@elnur.pro>
  * @author Terje Bråten <terje@braten.be>
  */
-class BCryptPasswordEncoder extends BasePasswordEncoder implements SelfSaltingEncoderInterface
+class BCryptPasswordEncoder extends BasePasswordEncoder
 {
     const MAX_PASSWORD_LENGTH = 72;
 
@@ -68,7 +68,9 @@ class BCryptPasswordEncoder extends BasePasswordEncoder implements SelfSaltingEn
         $options = array('cost' => $this->cost);
 
         if ($salt) {
-            // Ignore $salt, the auto-generated one is always the best
+            @trigger_error('Passing a $salt to '.__METHOD__.'() is deprecated since Symfony 2.8 and will be ignored in 3.0.', E_USER_DEPRECATED);
+
+            $options['salt'] = $salt;
         }
 
         return password_hash($raw, PASSWORD_BCRYPT, $options);

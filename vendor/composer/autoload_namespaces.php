@@ -11,6 +11,7 @@ return array(
     'ProxyManager\\' => array($vendorDir . '/ocramius/proxy-manager/src'),
     'Presta\\SitemapBundle\\' => array($vendorDir . '/presta/sitemap-bundle'),
     'Pagerfanta\\' => array($vendorDir . '/pagerfanta/pagerfanta/src'),
+    'Knp\\Bundle\\MenuBundle' => array($vendorDir . '/knplabs/knp-menu-bundle'),
     'Imagine' => array($vendorDir . '/imagine/imagine/lib'),
     'Gedmo\\' => array($vendorDir . '/gedmo/doctrine-extensions/lib'),
     'ES\\Bundle\\BaseBundle' => array($baseDir . '/'),

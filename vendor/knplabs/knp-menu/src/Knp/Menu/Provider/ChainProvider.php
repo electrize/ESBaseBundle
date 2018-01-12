@@ -4,12 +4,12 @@ namespace Knp\Menu\Provider;
 
 class ChainProvider implements MenuProviderInterface
 {
+    /**
+     * @var MenuProviderInterface[]
+     */
     private $providers;
 
-    /**
-     * @param MenuProviderInterface[]|iterable $providers
-     */
-    public function __construct($providers)
+    public function __construct(array $providers)
     {
         $this->providers = $providers;
     }

@@ -11,16 +11,13 @@
 
 namespace Symfony\Bundle\FrameworkBundle\Tests\Functional\Bundle\TestBundle\Controller;
 
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareTrait;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\DependencyInjection\ContainerAware;
 
-class SessionController implements ContainerAwareInterface
+class SessionController extends ContainerAware
 {
-    use ContainerAwareTrait;
-
     public function welcomeAction(Request $request, $name = null)
     {
         $session = $request->getSession();

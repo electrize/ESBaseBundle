@@ -96,7 +96,7 @@ class RememberMeListener implements ListenerInterface
                 );
             }
 
-            $this->rememberMeServices->loginFail($request, $e);
+            $this->rememberMeServices->loginFail($request);
 
             if (!$this->catchExceptions) {
                 throw $e;

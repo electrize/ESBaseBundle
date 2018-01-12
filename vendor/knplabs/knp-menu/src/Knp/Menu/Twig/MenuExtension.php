@@ -28,7 +28,6 @@ class MenuExtension extends \Twig_Extension
              new \Twig_SimpleFunction('knp_menu_get', array($this, 'get')),
              new \Twig_SimpleFunction('knp_menu_render', array($this, 'render'), array('is_safe' => array('html'))),
              new \Twig_SimpleFunction('knp_menu_get_breadcrumbs_array', array($this, 'getBreadcrumbsArray')),
-             new \Twig_SimpleFunction('knp_menu_get_current_item', array($this, 'getCurrentItem')),
         );
     }
 
@@ -89,26 +88,6 @@ class MenuExtension extends \Twig_Extension
     }
 
     /**
-     * Returns the current item of a menu.
-     *
-     * @param ItemInterface|string $menu
-     *
-     * @return ItemInterface
-     */
-    public function getCurrentItem($menu)
-    {
-        $rootItem = $this->get($menu);
-
-        $currentItem = $this->helper->getCurrentItem($rootItem);
-
-        if (null === $currentItem) {
-            $currentItem = $rootItem;
-        }
-
-        return $currentItem;
-    }
-
-    /**
      * A string representation of this menu item
      *
      * e.g. Top Level > Second Level > This menu
@@ -157,7 +136,7 @@ class MenuExtension extends \Twig_Extension
             throw new \BadMethodCallException('The matcher must be set to get the breadcrumbs array');
         }
 
-        return $this->matcher->isAncestor($item, $depth);
+        return $this->matcher->isAncestor($item);
     }
 
     /**

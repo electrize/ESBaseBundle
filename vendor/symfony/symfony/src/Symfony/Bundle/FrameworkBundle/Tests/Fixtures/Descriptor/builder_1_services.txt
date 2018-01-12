@@ -1,4 +1,3 @@
-
 [33mSymfony Container Public and Private Services[39m
 [33m=============================================[39m
 
@@ -10,5 +9,4 @@
   definition_1        Full\Qualified\Class1                                   
   definition_2        Full\Qualified\Class2                                   
   service_container   Symfony\Component\DependencyInjection\ContainerBuilder  
- ------------------- -------------------------------------------------------- 
-
+ ------------------- --------------------------------------------------------

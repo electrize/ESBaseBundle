@@ -25,6 +25,16 @@ class CurrencyTypeTest extends BaseTypeTest
         parent::setUp();
     }
 
+    /**
+     * @group legacy
+     */
+    public function testLegacyName()
+    {
+        $form = $this->factory->create('currency');
+
+        $this->assertSame('currency', $form->getConfig()->getType()->getName());
+    }
+
     public function testCurrenciesAreSelectable()
     {
         $choices = $this->factory->create(static::TESTED_TYPE)
