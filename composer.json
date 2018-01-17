@@ -19,7 +19,7 @@
 		"twig/extensions": "~1.0",
 		"braincrafted/bootstrap-bundle": "~2.0",
 		"knplabs/knp-menu": "2.1.*@dev",
-		"knplabs/knp-menu-bundle": "2.0.*@dev",
+		"knplabs/knp-menu-bundle": "2.1.*@dev",
 		"pagerfanta/pagerfanta": "1.0.*@dev",
 		"white-october/pagerfanta-bundle": "*",
 		"liip/imagine-bundle": "1.0.*@dev",
